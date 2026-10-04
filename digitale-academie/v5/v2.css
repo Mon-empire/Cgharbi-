@@ -1,0 +1,294 @@
+﻿/*
+  Digitale Académie · v2 « L'Université vient à toi »
+  Tout est confiné à #da-experience. Sans script (ou mouvement réduit) : page éditoriale lisible, en flux normal.
+  Avec script (.is-live) : chapitres longs, scène épinglée par transformation (le thème neutralise sticky), monde WebGL unique.
+*/
+#da-experience{
+  --night:#04080D;--ink:#F4F7F9;--soft:#C9D6DF;--mute:#93A7B6;--rule:rgba(169,185,197,.18);--signal:#FFD600;
+  --top:0px;--vh:100vh;--gut:clamp(20px,5vw,72px);
+  --display:'Jost',Arial,sans-serif;--serif:'Instrument Serif',Georgia,serif;
+  position:relative;isolation:isolate;background:var(--night);color:var(--ink);font-family:var(--display);
+  font-size:clamp(16px,1.15vw,20px);line-height:1.55;overflow:hidden;-webkit-font-smoothing:antialiased
+}
+#da-experience *,#da-experience *::before,#da-experience *::after{box-sizing:border-box}
+#da-experience h2,#da-experience p,#da-experience ol,#da-experience ul,#da-experience li{margin:0;padding:0}
+#da-experience li{list-style:none}
+#da-experience li::before,#da-experience li::after,#da-experience h2::before,#da-experience h2::after{content:none}
+#da-experience em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0}
+#da-experience a{color:inherit}
+#da-experience :focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+
+/* ---------- canvas : une seule scène pour toute l'expérience ---------- */
+#da-experience .v2-gl{position:fixed;left:0;top:var(--top);width:100%;height:calc(var(--vh) - var(--top));display:block;opacity:0;visibility:hidden;transition:opacity .6s;z-index:0;pointer-events:none}
+#da-experience .v2-gl.is-on{opacity:1;visibility:visible}
+
+/* ---------- chapitres ---------- */
+#da-experience .v2-ch{position:relative;z-index:1}
+#da-experience .v2-stage{position:relative;padding:clamp(64px,10vw,140px) var(--gut)}
+#da-experience .v2-label{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:14px}
+#da-experience .v2-label::before{content:"";width:32px;height:1px;background:var(--signal)}
+#da-experience .v2-kicker{display:flex;justify-content:space-between;gap:16px;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--soft)}
+
+/* ouverture */
+#da-experience .v2-hero__t{margin-top:clamp(40px,8vh,96px);font-weight:800;line-height:.92;letter-spacing:-.035em}
+#da-experience .v2-hero__l1{display:block;font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em;font-size:clamp(34px,5.4vw,96px);color:var(--soft)}
+#da-experience .v2-hero__l2{display:block;font-size:clamp(52px,10.5vw,200px);color:var(--ink)}
+#da-experience .v2-hero__sub{max-width:34em;margin-top:28px;color:var(--soft)}
+#da-experience .v2-scroll{display:none}
+
+/* ascension */
+#da-experience .v2-asc__t{margin-top:18px;font-size:clamp(36px,5.6vw,104px);font-weight:800;line-height:.95;letter-spacing:-.035em}
+#da-experience .v2-asc__t em{color:var(--signal)}
+#da-experience .v2-asc__lead{margin-top:18px;max-width:28em;color:var(--soft)}
+#da-experience .v2-asc__level{display:none}
+#da-experience .v2-steps{margin-top:48px;display:grid;gap:2px;max-width:760px}
+#da-experience .v2-step{border-top:1px solid var(--rule);padding:18px 0}
+#da-experience .v2-step__btn{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:16px;font-size:clamp(26px,3vw,44px);font-weight:600;letter-spacing:-.02em}
+#da-experience .v2-step__n{font-size:12px;letter-spacing:.2em;color:var(--mute);font-weight:400}
+#da-experience .v2-step__lv{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--signal);margin:8px 0 6px}
+#da-experience .v2-step__body p:last-child{color:var(--soft);max-width:32em}
+#da-experience .v2-asc__note{margin-top:28px;font-size:12px;color:var(--mute)}
+
+/* lieu */
+#da-experience .v2-lieu__t{margin-top:18px;font-size:clamp(36px,5.6vw,104px);font-weight:800;line-height:.95;letter-spacing:-.035em}
+#da-experience .v2-lieu__t em{color:var(--signal)}
+#da-experience .v2-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(16px,3vw,48px);margin-top:clamp(40px,7vh,80px);max-width:1200px}
+#da-experience .v2-facts li{border-top:1px solid var(--rule);padding-top:18px}
+#da-experience .v2-facts strong{display:block;font-size:clamp(48px,7vw,128px);font-weight:300;letter-spacing:-.05em;line-height:1}
+#da-experience .v2-facts sup{font-size:.4em;vertical-align:top;color:var(--signal)}
+#da-experience .v2-facts small{font-size:.32em;letter-spacing:0}
+#da-experience .v2-facts span{display:block;margin-top:10px;color:var(--soft);max-width:18em}
+#da-experience .v2-contact{margin-top:clamp(40px,7vh,80px);display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:flex-end}
+#da-experience .v2-contact__addr{color:var(--soft);font-size:14px}
+#da-experience .v2-contact__cta{display:flex;flex-wrap:wrap;gap:12px}
+#da-experience .v2-btn{display:inline-flex;align-items:center;min-height:52px;padding:0 26px;border-radius:999px;background:var(--signal);color:#04080D;text-decoration:none;font-weight:600;letter-spacing:.01em;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s}
+#da-experience .v2-btn:hover{transform:translateY(-2px)}
+#da-experience .v2-btn--ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(238,243,246,.35)}
+#da-experience .v2-btn--ghost:hover{box-shadow:inset 0 0 0 1px var(--ink)}
+
+/* ---------- badges de relecture (visibles seulement en version de relecture) ---------- */
+#da-experience .v2-badge{display:none}
+#da-experience[data-da-recette] .v2-badge{display:inline-flex;vertical-align:middle;margin-left:.4em;padding:2px 8px;border-radius:999px;font:500 10px/1.6 var(--display);letter-spacing:.14em;text-transform:uppercase;color:#FFD600;box-shadow:inset 0 0 0 1px rgba(255,214,0,.55);white-space:nowrap;-webkit-text-stroke:0;font-style:normal}
+#da-experience[data-da-recette] .v2-badge--old{color:#FF9A6B;box-shadow:inset 0 0 0 1px rgba(255,154,107,.6)}
+#da-experience .v2-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- navigation interne ---------- */
+#da-experience .v2-nav{position:relative;z-index:6;padding:14px var(--gut);border-bottom:1px solid var(--rule)}
+#da-experience .v2-nav ol{display:flex;flex-wrap:wrap;gap:4px 22px}
+#da-experience .v2-nav a{display:inline-flex;align-items:center;min-height:36px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:var(--soft);transition:color .3s}
+#da-experience .v2-nav a:hover,#da-experience .v2-nav a[aria-current="true"]{color:var(--ink)}
+#da-experience .v2-nav a[aria-current="true"]::before{content:"";width:18px;height:1px;background:var(--signal);margin-right:10px}
+#da-experience.is-live .v2-nav{position:fixed;top:calc(var(--top) + 14px);left:50%;transform:translateX(-50%);padding:6px 20px;border:0;border-radius:999px;background:rgba(4,8,13,.62);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(238,243,246,.14);max-width:calc(100vw - 32px);overflow-x:auto;scrollbar-width:none;transition:opacity .5s,transform .5s}
+#da-experience.is-live .v2-nav ol{flex-wrap:nowrap;gap:2px 18px}
+#da-experience.is-live .v2-nav a{white-space:nowrap;font-size:11px}
+#da-experience.is-live .v2-nav.is-away{opacity:0;transform:translate(-50%,-12px);pointer-events:none}
+
+/* ---------- nouveaux chapitres : version éditoriale (sans script) ---------- */
+#da-experience h3{margin:0;font-size:inherit}
+#da-experience .v2-walk__t,#da-experience .v2-human__t,#da-experience .v2-terr__t,#da-experience .v2-fin__t{margin-top:18px;font-size:clamp(36px,5.6vw,104px);font-weight:800;line-height:.95;letter-spacing:-.035em}
+#da-experience .v2-walk__t em,#da-experience .v2-human__t em,#da-experience .v2-terr__t em,#da-experience .v2-fin__t em{color:var(--signal)}
+#da-experience .v2-walk__count{display:none}
+#da-experience .v2-walk__steps{margin-top:40px;display:grid;gap:0;max-width:760px;counter-reset:st}
+#da-experience .v2-walk__step{border-top:1px solid var(--rule);padding:16px 0;counter-increment:st}
+#da-experience .v2-walk__step h3{font-size:clamp(22px,2.4vw,36px);font-weight:600;letter-spacing:-.02em}
+#da-experience .v2-walk__step h3::before{content:counter(st,decimal-leading-zero);font-size:12px;letter-spacing:.2em;color:var(--signal);font-weight:400;margin-right:14px;vertical-align:middle}
+#da-experience .v2-walk__step p{color:var(--soft);max-width:34em;margin-top:6px}
+#da-experience .v2-human__list{margin:36px 0 0;display:grid;gap:0;max-width:760px}
+#da-experience .v2-human__list > div{border-top:1px solid var(--rule);padding:14px 0}
+#da-experience .v2-human__list dt{font-weight:600;font-size:clamp(18px,1.6vw,24px)}
+#da-experience .v2-human__list dd{margin:4px 0 0;color:var(--soft)}
+#da-experience .v2-work{margin-top:40px}
+#da-experience .v2-work ul{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+#da-experience .v2-work li{padding:8px 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--rule);font-size:14px}
+#da-experience .v2-credit{margin-top:24px;font-size:11px;color:var(--mute)}
+#da-experience .v2-lieu__spaces{margin-top:28px;color:var(--soft);font-size:14px}
+#da-experience .v2-rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+#da-experience .v2-room__n{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--signal)}
+#da-experience .v2-room h3{margin-top:6px;font-size:24px;font-weight:600}
+#da-experience .v2-room p:last-child{color:var(--soft)}
+#da-experience .v2-terr__lead{margin-top:18px;color:var(--soft);max-width:30em}
+#da-experience .v2-terr__list{margin:36px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px;max-width:980px}
+#da-experience .v2-terr__list > div{border-top:1px solid var(--rule);padding:14px 0}
+#da-experience .v2-terr__list dt{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute)}
+#da-experience .v2-terr__list dd{margin:6px 0 0}
+#da-experience .v2-terr__list a{color:var(--ink);text-decoration-color:rgba(255,214,0,.6);text-underline-offset:4px}
+#da-experience .v2-terr__schema{display:none}
+#da-experience .v2-fin__t > span:not(.v2-badge){display:block}
+#da-experience .v2-fin__cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+#da-experience .v2-fin__slogan{margin-top:28px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--soft)}
+
+/* ---------- nouveaux chapitres : mode vivant ---------- */
+#da-experience.is-live .v2-walk{height:calc(var(--vh) * 4.2)}
+#da-experience.is-live .v2-human{height:calc(var(--vh) * 3.2)}
+#da-experience.is-live .v2-campus{height:calc(var(--vh) * 3.2)}
+#da-experience.is-live .v2-terr{height:calc(var(--vh) * 2.4)}
+#da-experience.is-live .v2-fin{height:calc(var(--vh) * 2.2)}
+
+#da-experience.is-live .v2-walk .v2-stage::before,#da-experience.is-live .v2-human .v2-stage::before,#da-experience.is-live .v2-terr .v2-stage::before{content:"";position:absolute;inset:0 auto 0 0;width:min(62vw,900px);background:linear-gradient(90deg,rgba(4,8,13,.86),rgba(4,8,13,.5) 55%,rgba(4,8,13,0));pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-walk__head,#da-experience.is-live .v2-human__head,#da-experience.is-live .v2-terr__head{left:var(--gut);top:clamp(70px,12vh,130px);max-width:min(44vw,640px)}
+#da-experience.is-live .v2-walk__t,#da-experience.is-live .v2-human__t,#da-experience.is-live .v2-terr__t{font-size:clamp(30px,3.6vw,64px)}
+#da-experience.is-live .v2-walk__count{display:block;right:var(--gut);top:clamp(70px,12vh,130px);font-size:clamp(60px,9vw,170px);font-weight:300;letter-spacing:-.05em;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+#da-experience.is-live .v2-walk__steps{left:var(--gut);bottom:clamp(40px,9vh,100px);width:min(44vw,620px);margin:0;display:block}
+#da-experience.is-live .v2-walk__step{position:absolute;left:0;bottom:0;width:100%;border:0;padding:0;opacity:0;transform:translateY(24px);transition:opacity .6s,transform .8s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+#da-experience.is-live .v2-walk__step.is-on{opacity:1;transform:none}
+#da-experience.is-live .v2-walk__step h3{font-size:clamp(34px,4.2vw,76px);font-weight:800;letter-spacing:-.035em}
+#da-experience.is-live .v2-walk__step h3::before{display:block;margin:0 0 8px}
+#da-experience.is-live .v2-walk__step p{font-size:clamp(15px,1.2vw,19px)}
+
+#da-experience.is-live .v2-human__list{left:var(--gut);bottom:clamp(40px,9vh,100px);width:min(40vw,560px);margin:0}
+#da-experience.is-live .v2-human__list > div{opacity:.25;transition:opacity .6s}
+#da-experience.is-live .v2-human__list > div.is-on{opacity:1}
+#da-experience.is-live .v2-work{right:var(--gut);bottom:clamp(40px,9vh,100px);margin:0;text-align:right}
+#da-experience.is-live .v2-work ul{flex-direction:column;align-items:flex-end;gap:2px}
+#da-experience.is-live .v2-work li{box-shadow:none;padding:4px 0;color:var(--mute);transition:color .4s,font-size .4s}
+#da-experience.is-live .v2-work li.is-on{color:var(--ink);font-size:clamp(22px,2.2vw,36px);font-weight:600}
+#da-experience.is-live .v2-human .v2-credit,#da-experience.is-live .v2-campus .v2-credit{right:var(--gut);top:clamp(70px,12vh,130px);margin:0}
+
+#da-experience.is-live .v2-lieu__spaces{left:var(--gut);bottom:clamp(40px,7vh,80px);margin:0}
+#da-experience.is-live .v2-lieu .v2-facts{bottom:clamp(110px,18vh,190px)}
+
+#da-experience.is-live .v2-rooms{left:var(--gut);bottom:clamp(40px,9vh,100px);width:min(40vw,560px);display:block}
+#da-experience.is-live .v2-room{position:absolute;left:0;bottom:0;width:100%;opacity:0;transform:translateY(20px);transition:opacity .6s,transform .8s cubic-bezier(.2,.8,.2,1);padding:22px 24px;border-radius:4px;background:rgba(4,8,13,.62);backdrop-filter:blur(8px)}
+#da-experience.is-live .v2-room.is-on{opacity:1;transform:none}
+#da-experience.is-live .v2-room h3{font-size:clamp(28px,3vw,52px);font-weight:800;letter-spacing:-.03em}
+
+#da-experience.is-live .v2-terr__list{left:var(--gut);bottom:clamp(30px,6vh,70px);width:min(52vw,820px);margin:0}
+#da-experience.is-live .v2-terr__schema{display:block;right:var(--gut);bottom:clamp(20px,4vh,40px);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute)}
+
+#da-experience.is-live .v2-fin .v2-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 60% at 50% 60%,rgba(4,8,13,0),rgba(4,8,13,.6));pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-fin__t{left:var(--gut);right:var(--gut);bottom:clamp(150px,24vh,260px);margin:0;text-align:center;font-size:clamp(40px,6.6vw,128px)}
+#da-experience.is-live .v2-fin__cta{left:0;right:0;bottom:clamp(70px,11vh,130px);margin:0;justify-content:center}
+#da-experience.is-live .v2-fin__slogan{left:0;right:0;bottom:clamp(24px,4vh,46px);margin:0;text-align:center;font-size:16px}
+
+@media (max-width:760px){
+  #da-experience .v2-terr__list{grid-template-columns:minmax(0,1fr)}
+  #da-experience.is-live .v2-walk__head,#da-experience.is-live .v2-human__head,#da-experience.is-live .v2-terr__head{max-width:none;right:var(--gut)}
+  #da-experience.is-live .v2-walk__steps,#da-experience.is-live .v2-human__list,#da-experience.is-live .v2-rooms,#da-experience.is-live .v2-terr__list{width:auto;right:var(--gut)}
+  #da-experience.is-live .v2-work{display:none}
+  #da-experience.is-live .v2-terr__list > div:nth-child(n+5){display:none}
+  #da-experience.is-live .v2-walk__count{top:auto;bottom:45vh;font-size:56px}
+}
+
+/* réglages : son (obligatoire, coupable — RGAA 4.10) et animations réduites */
+#da-experience .v2-ctrl{position:sticky;top:calc(var(--top) + 12px);z-index:6;display:flex;justify-content:flex-end;gap:8px;padding:12px var(--gut) 0}
+#da-experience.is-live .v2-ctrl{position:fixed;top:auto;bottom:20px;right:20px;left:auto;padding:0}
+#da-experience .v2-ctrl__btn{font:inherit;font-size:12px;letter-spacing:.06em;color:var(--ink);background:rgba(4,8,13,.72);backdrop-filter:blur(8px);border:0;box-shadow:inset 0 0 0 1px rgba(238,243,246,.22);border-radius:999px;min-height:40px;padding:0 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:box-shadow .3s}
+#da-experience .v2-ctrl__btn:hover{box-shadow:inset 0 0 0 1px var(--ink)}
+#da-experience .v2-ctrl__btn[data-da-action="motion"][aria-pressed="true"]{background:var(--signal);color:#04080D}
+#da-experience .da-nav__btn--sound::before{content:"";width:14px;height:12px;background:linear-gradient(currentColor,currentColor) 0 100%/2px 60% no-repeat,linear-gradient(currentColor,currentColor) 4px 100%/2px 100% no-repeat,linear-gradient(currentColor,currentColor) 8px 100%/2px 45% no-repeat,linear-gradient(currentColor,currentColor) 12px 100%/2px 80% no-repeat}
+#da-experience .da-nav__btn--sound[aria-pressed="false"]::before{opacity:.45;background-size:2px 20%,2px 20%,2px 20%,2px 20%}
+#da-experience .da-nav__btn--sound.is-waiting{animation:v2-wait 1.6s ease-in-out infinite}
+@keyframes v2-wait{50%{box-shadow:inset 0 0 0 1px var(--signal),0 0 0 6px rgba(255,214,0,.22)}}
+@media (prefers-reduced-motion:reduce){#da-experience .da-nav__btn--sound.is-waiting{animation:none}}
+/* intertitres de cinéma : numéro romain, trait doré qui se trace, titre ; quelques instants entre deux chapitres */
+#da-experience .v2-inter{position:fixed;left:50%;top:calc(var(--top) + 30%);transform:translateX(-50%);z-index:4;display:grid;justify-items:center;gap:14px;pointer-events:none;opacity:0;color:var(--ink);text-shadow:0 2px 30px rgba(0,0,0,.6)}
+#da-experience .v2-inter__n{font-family:var(--serif);font-style:italic;font-size:clamp(44px,6vw,92px);line-height:1;color:var(--signal)}
+#da-experience .v2-inter__l{width:0;height:1px;background:var(--signal);box-shadow:0 0 12px rgba(255,214,0,.8)}
+#da-experience .v2-inter__t{font-size:13px;letter-spacing:.5em;text-transform:uppercase;padding-left:.5em}
+#da-experience .v2-inter.is-on{animation:v2-inter 2.4s cubic-bezier(.2,.8,.2,1) both}
+#da-experience .v2-inter.is-on .v2-inter__l{animation:v2-inter-l 2.4s cubic-bezier(.2,.8,.2,1) both}
+@keyframes v2-inter{0%{opacity:0;transform:translateX(-50%) translateY(10px)}18%{opacity:1;transform:translateX(-50%)}70%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-8px)}}
+@keyframes v2-inter-l{0%{width:0}45%{width:min(220px,40vw)}100%{width:min(220px,40vw)}}
+@media (prefers-reduced-motion:reduce){#da-experience .v2-inter{display:none}}
+#da-experience .v2-status{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:5;margin:0;padding:10px 18px;border-radius:999px;background:rgba(4,8,13,.85);color:var(--soft);font-size:13px;letter-spacing:.04em;box-shadow:inset 0 0 0 1px var(--rule)}
+
+/* ================= mode vivant ================= */
+#da-experience.is-live .v2-hero{height:calc(var(--vh) * 3.4)}
+#da-experience.is-live .v2-asc{height:calc(var(--vh) * 4.6)}
+#da-experience.is-live .v2-lieu{height:calc(var(--vh) * 2)}
+#da-experience.is-live .v2-stage{position:absolute;left:0;top:0;width:100%;height:calc(var(--vh) - var(--top));padding:0;will-change:transform}
+#da-experience.is-live .v2-stage > *{position:absolute}
+
+/* ouverture vivante */
+#da-experience.is-live .v2-kicker{left:var(--gut);right:var(--gut);top:clamp(24px,4vh,44px)}
+#da-experience.is-live .v2-hero__t{left:var(--gut);right:var(--gut);bottom:clamp(90px,15vh,170px);margin:0}
+#da-experience.is-live .v2-hero__l1,#da-experience.is-live .v2-hero__l2{overflow:hidden;padding-bottom:.08em}
+#da-experience.is-live .v2-hero__l1 > span,#da-experience.is-live .v2-hero__l2 > span{display:inline-block;will-change:transform}
+#da-experience.is-live .v2-hero__l2{color:var(--signal)}
+#da-experience.is-live .v2-hero__sub{left:var(--gut);bottom:clamp(36px,6vh,64px);margin:0;font-size:14px}
+#da-experience.is-live .v2-scroll{display:flex;align-items:center;gap:12px;left:50%;bottom:clamp(24px,4vh,40px);transform:translateX(-50%);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--soft)}
+#da-experience.is-live .v2-scroll span{width:1px;height:42px;background:linear-gradient(var(--signal),transparent);animation:v2-scroll 1.8s cubic-bezier(.6,0,.2,1) infinite}
+@keyframes v2-scroll{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ascension vivante : voiles sombres derrière les textes, la scène reste au centre-gauche */
+#da-experience.is-live .v2-asc .v2-stage::after{content:"";position:absolute;inset:0 0 0 auto;width:min(48vw,720px);background:linear-gradient(90deg,rgba(4,8,13,0),rgba(4,8,13,.78) 55%);pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-asc .v2-stage::before{content:"";position:absolute;inset:0 auto auto 0;width:min(56vw,860px);height:46%;background:radial-gradient(120% 100% at 0 0,rgba(4,8,13,.82),rgba(4,8,13,0) 70%);pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-asc__head{left:var(--gut);top:clamp(28px,6vh,72px);max-width:min(46vw,760px)}
+#da-experience.is-live .v2-asc__t{font-size:clamp(30px,3.6vw,64px)}
+#da-experience.is-live .v2-asc__lead{font-size:14px}
+#da-experience.is-live .v2-asc__level{display:block;left:calc(var(--gut) - .06em);bottom:clamp(-40px,-3vh,-10px);font-size:clamp(120px,22vw,420px);font-weight:800;letter-spacing:-.06em;line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(238,243,246,.22);white-space:nowrap;pointer-events:none}
+#da-experience.is-live .v2-steps{right:var(--gut);bottom:clamp(40px,8vh,96px);width:min(30vw,440px);margin:0;gap:0}
+#da-experience.is-live .v2-step{padding:0;border:0}
+#da-experience.is-live .v2-step__btn{font-size:14px;font-weight:400;letter-spacing:.04em;color:var(--mute);padding:7px 0;transition:color .4s}
+#da-experience.is-live .v2-step__btn:hover{color:var(--ink)}
+#da-experience.is-live .v2-step__body{max-height:0;overflow:hidden;opacity:0;transition:max-height .7s cubic-bezier(.2,.8,.2,1),opacity .5s}
+#da-experience.is-live .v2-step.is-on .v2-step__btn{color:var(--ink);font-size:clamp(34px,3.6vw,64px);font-weight:600;letter-spacing:-.02em}
+#da-experience.is-live .v2-step.is-on .v2-step__n{color:var(--c,var(--signal))}
+#da-experience.is-live .v2-step.is-on .v2-step__body{max-height:220px;opacity:1;padding-bottom:14px}
+#da-experience.is-live .v2-step.is-on .v2-step__lv{color:var(--c,var(--signal))}
+#da-experience.is-live .v2-asc__note{right:var(--gut);bottom:clamp(14px,3vh,30px);margin:0}
+
+/* lieu vivant */
+#da-experience.is-live .v2-lieu .v2-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 60% at 0 0,rgba(4,8,13,.75),rgba(4,8,13,0) 70%),linear-gradient(0deg,rgba(4,8,13,.92),rgba(4,8,13,.55) 38%,rgba(4,8,13,0) 62%);pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-lieu .v2-label{left:var(--gut);top:clamp(28px,6vh,72px)}
+#da-experience.is-live .v2-lieu__t{left:var(--gut);top:clamp(60px,11vh,130px);margin:0}
+#da-experience.is-live .v2-facts{left:var(--gut);right:var(--gut);bottom:clamp(150px,22vh,230px);margin:0;max-width:none}
+#da-experience.is-live .v2-contact{left:var(--gut);right:var(--gut);bottom:clamp(28px,5vh,56px);margin:0}
+
+@media (max-width:760px){
+  #da-experience .v2-facts{grid-template-columns:minmax(0,1fr)}
+  #da-experience.is-live .v2-asc__head{max-width:none;right:var(--gut)}
+  #da-experience.is-live .v2-asc__lead{display:none}
+  #da-experience.is-live .v2-steps{left:var(--gut);width:auto}
+  #da-experience.is-live .v2-facts{grid-template-columns:repeat(3,minmax(0,1fr));bottom:clamp(170px,28vh,240px)}
+  #da-experience.is-live .v2-facts strong{font-size:40px}
+  #da-experience.is-live .v2-facts span{font-size:12px}
+  #da-experience.is-live .v2-kicker span:last-child{display:none}
+}
+@media print{
+  #da-experience{background:#fff;color:#000}
+  #da-experience .v2-gl{display:none}
+}
+
+/* ================= lisibilité ================= */
+#da-experience.is-live .v2-stage{text-shadow:0 1px 18px rgba(4,8,13,.85),0 0 2px rgba(4,8,13,.6)}
+#da-experience .v2-label,#da-experience .v2-kicker,#da-experience .v2-room__n,#da-experience .v2-terr__list dt{font-size:13px;letter-spacing:.24em}
+#da-experience.is-live .v2-nav a{font-size:12px}
+#da-experience .v2-step__lv,#da-experience .v2-walk__step h3::before{font-size:13px}
+#da-experience.is-live .v2-hero__sub,#da-experience.is-live .v2-asc__lead,#da-experience .v2-credit,#da-experience .v2-asc__note{font-size:15px}
+#da-experience.is-live .v2-step__btn{font-size:15px;color:var(--soft)}
+#da-experience.is-live .v2-work li{font-size:15px;color:var(--soft)}
+#da-experience.is-live .v2-human__list > div{opacity:.4}
+
+/* ================= ouverture et final (refonte) ================= */
+/* carton-titre sous le logo : nom en capitales espacées, lieu en italique */
+#da-experience.is-live .v2-kicker{left:var(--gut);right:var(--gut);top:61%;display:grid;justify-content:center;justify-items:center;gap:14px;text-align:center;letter-spacing:.42em;opacity:0}
+#da-experience.is-live .v2-kicker span:first-child{font-size:clamp(20px,2.6vw,40px);font-weight:300;color:var(--ink);padding-left:.42em}
+#da-experience.is-live .v2-kicker span:last-child{display:block;font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:.02em;font-size:clamp(16px,1.5vw,22px);color:var(--soft)}
+#da-experience.is-live .v2-kicker span:first-child::after{content:"";display:block;width:56px;height:1px;margin:16px auto 0;background:var(--signal);box-shadow:0 0 12px rgba(255,214,0,.8)}
+#da-experience.is-live .v2-hero .v2-stage::before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,8,13,.55),rgba(4,8,13,0) 40%);opacity:var(--scrim,0);pointer-events:none;z-index:-1}
+/* final : la colonne de texte à gauche, la porte éclairée reste visible à droite */
+#da-experience.is-live .v2-fin .v2-stage::before{background:linear-gradient(90deg,rgba(4,8,13,.78),rgba(4,8,13,.42) 42%,rgba(4,8,13,0) 66%),linear-gradient(0deg,rgba(4,8,13,.5),rgba(4,8,13,0) 35%)}
+#da-experience.is-live .v2-fin__t{left:var(--gut);right:auto;max-width:min(48vw,780px);bottom:clamp(200px,31vh,330px);text-align:left;font-size:clamp(38px,5.2vw,96px)}
+#da-experience.is-live .v2-fin__t > span:not(.v2-badge),#da-experience.is-live .v2-fin__t em{display:block;will-change:transform,opacity}
+#da-experience.is-live .v2-fin__cta{left:var(--gut);right:auto;justify-content:flex-start;bottom:clamp(108px,16vh,180px)}
+#da-experience.is-live .v2-fin__slogan{left:var(--gut);right:auto;text-align:left;bottom:clamp(44px,7vh,80px)}
+#da-experience.is-live .v2-fin__cta,#da-experience.is-live .v2-fin__slogan{will-change:transform,opacity}
+@media (max-width:760px){
+  #da-experience.is-live .v2-kicker{top:58%}
+  #da-experience.is-live .v2-fin__t{max-width:none;right:var(--gut)}
+  #da-experience.is-live .v2-fin .v2-stage::before{background:linear-gradient(0deg,rgba(4,8,13,.85),rgba(4,8,13,.4) 55%,rgba(4,8,13,0) 75%)}
+}
+/* ================= voyage : panneaux de verre (le texte ne mange plus la scène) ================= */
+#da-experience.is-live .v2-terr__list{width:min(46vw,700px);padding:20px 24px;border-radius:8px;background:rgba(6,10,22,.58);backdrop-filter:blur(12px) saturate(1.2);-webkit-backdrop-filter:blur(12px) saturate(1.2);box-shadow:inset 0 0 0 1px rgba(160,190,255,.14)}
+#da-experience.is-live .v2-terr__list dd{font-size:14px}
+#da-experience.is-live .v2-terr__list:focus-within,#da-experience.is-live .v2-human__list:focus-within{opacity:1!important;transform:none!important;pointer-events:auto!important}
+#da-experience.is-live .v2-terr .v2-stage::before{content:"";position:absolute;inset:0 auto 0 0;width:min(60vw,900px);background:radial-gradient(110% 80% at 0 0,rgba(3,5,14,.7),rgba(3,5,14,0) 65%);pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-human__list{width:min(36vw,520px);padding:18px 22px;border-radius:8px;background:rgba(10,6,4,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,214,150,.14)}
+#da-experience.is-live .v2-human__list dd{font-size:14px}
+@media (max-width:760px){#da-experience.is-live .v2-terr__list,#da-experience.is-live .v2-human__list{width:auto;padding:14px 16px}}
+/* territoire réel : le fait « Campus connecté » et le crédit des données */
+#da-experience .v2-terr__first{max-width:34em;margin-top:14px;font-size:15px;line-height:1.5;color:var(--ink)}
+#da-experience .v2-terr__first strong{color:var(--signal);font-weight:600;letter-spacing:.02em}
+#da-experience.is-live .v2-terr__schema{max-width:min(46vw,620px);text-align:right;text-transform:none;letter-spacing:.02em;font-size:11px;line-height:1.4}
+@media (max-width:760px){#da-experience.is-live .v2-terr__schema{max-width:none;left:var(--gut);text-align:left}}
