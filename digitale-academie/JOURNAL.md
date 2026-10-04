@@ -1,5 +1,49 @@
 # Digitale Académie · « Le Fil » — journal de reprise
 
+## Version 14 (4 octobre 2026) : « Director's cut », première passe
+
+### P0 · le flash blanc (cause trouvée, corrigée)
+- **La frame blanche** : héro p ≈ 0,25 → 0,43, uniforme `uWhite` de la passe fx à 1 (« bourrasque de neige »), couleur
+  (0,9 ; 0,93 ; 0,97). Elle servait à cacher le saut de caméra entre la photo d'hiver 2019 (loin) et la photo d'automne 2023
+  (devant l'entrée). Or les deux photos sont recalées sur **les mêmes volumes** : la caméra vole maintenant de l'une à
+  l'autre (courbe Catmull-Rom), la saison se fond (`season()`), la neige devient rafale puis feuilles. Aucune coupe.
+- **Deux autres quasi-blancs** : l'intérieur surexposé à l'ouverture de la porte (lumière ponctuelle à 38 + néons + bloom)
+  et le « voile doré » vers le final (1 ; 0,84 ; 0,55). Le premier : pavillon dans la pénombre, la lumière chaude est la
+  nuée des 3 000 points qui attend dans l'embrasure ; le faisceau additif s'efface de près (on le traversait : voile laiteux).
+  Le second : ambre profond (0,5 ; 0,33 ; 0,1), coupe franche au cœur du voile.
+- **Démarrage continu** : un script en ligne (dans le bloc) décide avant le premier rendu si la 3D va tourner ; si oui, mise en
+  page vivante immédiate + **affiche** `assets/img/seuil-poster(-portrait).jpg` = la première image rendue par le moteur
+  (générée par `build/affiche.mjs`, à régénérer si l'étalonnage de l'ouverture change). Shaders compilés avant la première
+  image ; la toile apparaît par-dessus une image identique ; plus de fondu depuis le noir. Secours : si le moteur ne
+  répond pas en 30 s, retour à la page éditoriale. Vérifié en temps réel (luminance moyenne ≈ 26/255 de bout en bout).
+
+### Seuil
+- Plan-séquence hiver → automne, puis porte, nuée, intérieur (voir P0).
+- **Photo → espace** : les arêtes des volumes recalés (les vraies lignes de la façade) se tracent en lumière jaune depuis la
+  porte à l'aube, prolongent l'architecture dans la profondeur, puis s'effacent quand la caméra entre dans l'image.
+
+### Accompagnement
+- Rupture : la 3D s'éteint, vraie photo (`etudiants-1.jpg`), « Tu n'étudies pas seul » passe **derrière** l'étudiante du
+  premier plan (même photo détourée par un polygone), deux fils de lumière jaune et cyan (les deux coachs) traversent la
+  salle, la musique se retire. Puis les lanternes. **Photo marquée `data-da-droits="A_VALIDER"` + badge** : à retirer en
+  production tant que l'autorisation n'est pas confirmée (la section fonctionne sans elle).
+
+### Formations
+- Survol ou focus clavier d'une formation : son lutrin s'allume, la caméra y jette un regard ; clic : la caméra suit le fil
+  jusqu'à elle (existant). La liste reste l'index lisible.
+
+### Son — CONTRADICTION À ARBITRER
+- Kit précédent : « son obligatoire, activé par défaut, démarre au premier geste ». Nouveau brief : « aucun son automatique non
+  sollicité ». Le premier clic n'importe où démarrait la musique : c'est du son non sollicité. **Appliqué : le nouveau brief**
+  (bouton « Activer le son » qui invite discrètement, choix mémorisé). Pour revenir à l'ancien comportement :
+  `core/prefs.js`, `sound()` → `get('da-sound') !== '0'`.
+
+### Non fait (honnêtement)
+- Photogrammétrie / Gaussian splatting : impossible avec 2 photos de façade et 3 de salles (et sans réseau vers les modèles
+  d'estimation de profondeur ici). La projection photographique recalée reste la méthode fidèle.
+- Les passages entre vraies salles restent des coupes au noir motivées (néons qui s'éteignent / se rallument).
+- KTX2 / Draco : sans objet (pas de modèles glTF ; quelques JPEG).
+
 ## Version 13 (4 octobre 2026) : « Le lieu » et « La visite » élevés
 
 ### II · Le lieu — les chiffres prennent corps

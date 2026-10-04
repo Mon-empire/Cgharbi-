@@ -1,8 +1,5 @@
-// Banc d'essai : sert v5/, redirige jsdelivr vers des modules locaux (three, lenis, opentype), et capture des images
-// à des points précis du film (chapitre:p). Le rendu passe par SwiftShader : prévoir ~1 min de chargement.
-// usage : node banc-essai.mjs sortie "hero:0,lieu:.42,campus:.4" [largeur hauteur]
-//   env : Q=LOW|MEDIUM|HIGH|ULTRA (qualité), N=40 (images de stabilisation par prise), EVAL="expr" (affiche une valeur),
-//         WAIT=ms (laisse finir les transitions CSS), HOVER="sélecteur" (survol avant la prise)
+// Affiche de démarrage : rend la première image de l'ouverture (héro p = 0, avant la naissance du logo), interface masquée.
+// usage : node affiche.mjs sortie 1600 1080   (puis convertir en JPEG vers v5/assets/img/seuil-poster.jpg ; portrait : 760 1640)
 import { chromium } from 'playwright';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -10,8 +7,8 @@ import path from 'node:path';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = process.env.ROOT || path.resolve(HERE, '../v5');
-const NM = process.env.NM || path.resolve(HERE, 'node_modules');   /* npm i three@0.169.0 lenis@1.1.13 opentype.js@1.3.4 playwright */
-const [, , prefix = 'shot', spec = 'hero:0', W = '1280', H = '800'] = process.argv;
+const NM = process.env.NM || path.resolve(HERE, 'node_modules');
+const [, , prefix = 'poster', W = '1600', H = '1080'] = process.argv;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff': 'font/woff', '.mp3': 'audio/mpeg' };
 const srv = http.createServer((q, s) => {
   const f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0]).replace(/\/$/, '/index.html'));
@@ -50,26 +47,9 @@ await page.waitForFunction(() => window.__v2 && window.__v2.scenes && window.__v
 await page.waitForTimeout(1500);
 await page.evaluate(() => { window.__pauseRAF = true; });
 await page.waitForTimeout(500);
-await page.evaluate(() => { window.__v2.introAt = 5; });
-for (const item of spec.split(',')) {
-  const [ch, p] = item.split(':');
-  await page.evaluate(([ch, p]) => {
-    const el = document.querySelector(`[data-ch="${ch}"]`);
-    const top = el.getBoundingClientRect().top + scrollY, TOP = parseFloat(getComputedStyle(document.getElementById('da-experience')).getPropertyValue('--top')) || 0;
-    const y = top - TOP + (el.offsetHeight - (innerHeight - TOP)) * p;
-    window.__v2Lenis?.stop?.();
-    scrollTo(0, y);
-  }, [ch, +p]);
-  if (process.env.HOVER) { await page.evaluate(() => window.__v2.settle(20)); await page.hover(process.env.HOVER, { force: true }); }
-  const t0 = Date.now();
-  await page.evaluate(n => window.__v2.settle(n), +(process.env.N || 40));
-  process.stderr.write(`settle ${Date.now() - t0}ms\n`);
-  if (process.env.WAIT) await page.waitForTimeout(+process.env.WAIT);
-  const name = `${prefix}-${ch}-${p}.png`;
-  await page.screenshot({ path: name, timeout: 240000 });
-  const st = await page.evaluate(() => JSON.stringify(window.__v2.state));
-  console.log(name, st.slice(0, 160));
-  if (process.env.EVAL) console.log('EVAL', await page.evaluate(process.env.EVAL));
-}
+await page.evaluate(() => { window.__v2.introAt = 0; const st = document.createElement('style'); st.textContent = '.v2-stage,.v2-nav,.v2-ctrl,.v2-inter,.v2-status{visibility:hidden!important}'; document.head.append(st); scrollTo(0, 0); });
+await page.evaluate(() => window.__v2.settle(60));
+await page.locator('canvas.v2-gl').screenshot({ path: prefix + '.png', timeout: 240000 });
+console.log('poster', prefix);
 console.log(logs.filter(l => !/GPU stall|swiftshader|WebGL-/.test(l)).slice(0, 30).join('\n'));
 await browser.close(); srv.close();
