@@ -104,10 +104,10 @@ async function start() {
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .5, .5, .9); composer.addPass(bloom);
   const fx = new ShaderPass({
-    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uFade: { value: 1 }, uCA: { value: .0007 }, uDream: { value: .5 }, uWhite: { value: 0 }, uWhiteC: { value: new THREE.Vector3(.9, .93, .97) } },
+    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uFade: { value: 1 }, uCA: { value: .0007 }, uDream: { value: .5 }, uWhite: { value: 0 }, uBlack: { value: 0 }, uWhiteC: { value: new THREE.Vector3(.9, .93, .97) } },
     vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     /* rendu de rêve : léger halo diffus, aberration sur les bords, vignette, grain fin */
-    fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uFade,uCA,uDream,uWhite;uniform vec3 uWhiteC;varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uFade,uCA,uDream,uWhite,uBlack;uniform vec3 uWhiteC;varying vec2 vUv;
       float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
       void main(){vec2 d=vUv-.5;float r=dot(d,d);vec2 o=d*uCA*(1.+r*6.);
         vec3 c=vec3(texture2D(tDiffuse,vUv+o).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-o).b);
@@ -115,7 +115,7 @@ async function start() {
         c=mix(c,max(c,soft),uDream*.18);
         /* bourrasque de neige : l'image blanchit, avec un voile qui dérive */
         float fl=h(floor(vUv*vec2(160.,90.)+vec2(0.,uTime*30.)));c=mix(c,uWhiteC+fl*.05,uWhite*(.85+.15*smoothstep(.2,.9,uWhite)));
-        c*=1.-r*1.1;c+=(h(vUv*vec2(1123.,987.)+fract(uTime*7.))-.5)*.018;c*=1.-uFade;gl_FragColor=vec4(c,1.);}`
+        c*=1.-r*1.1;c+=(h(vUv*vec2(1123.,987.)+fract(uTime*7.))-.5)*.018;c*=(1.-uFade)*(1.-uBlack);gl_FragColor=vec4(c,1.);}`
   });
   composer.addPass(fx); composer.addPass(new OutputPass());
 
@@ -203,7 +203,9 @@ async function start() {
   /* ---------- le monde : le réel (pavillon, Surville) et le rêve (bibliothèque) ---------- */
   const ctx = {
     THREE, scene, camera, renderer, mobile, ss, eIO, eOut, lerp, damp, clamp, tex, dust, buildText, textMat,
-    fontMid, fontHeavy, RoundedBoxGeometry, cue, lights: { key, rim }, logoGeo: lg, logoShader: LOGO_SHADER, logoBranches: BR, REACH, level
+    fontMid, fontHeavy, RoundedBoxGeometry, cue, lights: { key, rim }, logoGeo: lg, logoShader: LOGO_SHADER, logoBranches: BR, REACH, level, fx, bloom,
+    /* lumière d'ambiance (lune, ciel, environnement) : un chapitre d'intérieur peut l'éteindre (0) ou la garder (1) */
+    ambient: k => { moon.intensity *= k; hemi.intensity *= k; scene.environmentIntensity *= k; }
   };
   const [{ createSky }, { createPavilion }, { createSurville }, { createLibrary }, { createRealFacade }] = await Promise.all([
     import('./world/sky.js'), import('./world/pavilion.js'), import('./world/surville.js'), import('./world/library.js'), import('./world/realfacade.js')
@@ -232,6 +234,10 @@ async function start() {
   const flock = createFlock(ctx);
   /* le papier peint montre la vraie bibliothèque qui attend derrière le mur */
   pavilion.muralMat.map = library.muralTexture; pavilion.muralMat.needsUpdate = true;
+  /* les vraies salles, en volume (photos de la Ville projetées depuis leur prise de vue) */
+  const { createPhotoRooms } = await import('./world/photorooms.js');
+  const photoRooms = await createPhotoRooms(ctx);
+  ctx.photoRooms = photoRooms;
   const renderMural = () => library.renderMural(renderer, scene, [pavilion.group, surville.group, real.group]);
 
   /* ---------- prologue : logo en particules qui se pose sur le vrai logo de la façade ---------- */
@@ -357,7 +363,7 @@ async function start() {
   const probe = { n: 0, sum: 0, drops: 0 };
   const camPos = new THREE.Vector3(.6, 1.75, 34), look = new THREE.Vector3(1.4, 2.2, -2), tmpP = new THREE.Vector3(), tmpL = new THREE.Vector3();
   const prevCam = new THREE.Vector3(), tmpV = new THREE.Vector3(), tmpF = new THREE.Vector3(), tmpR = new THREE.Vector3();
-  let bank = 0, speed = 0;
+  let bank = 0, speed = 0, lastCut = '', lastHard = false;
   const BL = .18;   /* part de chaque chapitre consacrée au raccord de caméra avec le précédent */
   const DUSK = { hero: .45, lieu: .45, campus: .1, asc: .2, walk: .3, human: .4, terr: .65, finale: 1 };
   window.__v2 = { get state() { return { current, level, cam: camera.position.toArray().map(v => +v.toFixed(1)), p: Object.fromEntries(chapters.map(c => [c.id, +c.p.toFixed(3)])) }; } };
@@ -393,11 +399,12 @@ async function start() {
     sky.update(t, dusk);
     /* lumière réelle de la nuit d'hiver → aube */
     moon.intensity = lerp(.35, 1.5, dusk); hemi.intensity = lerp(.18, .7, dusk); scene.environmentIntensity = lerp(.14, .55, dusk);
-    fx.uniforms.uTime.value = t;
+    fx.uniforms.uTime.value = t; fx.uniforms.uBlack.value = 0; bloom.threshold = .9; bloom.strength = .5;
+    pavilion.power(1); photoRooms.group.visible = false;
     fade = damp(fade, 0, 2.2, dt); fx.uniforms.uFade.value = fade;
 
     /* le rêve n'existe que du fond de la salle d'étude jusqu'à la sortie par la verrière */
-    const libOn = ['asc', 'walk', 'human'].includes(center) || (center === 'campus' && pc > .55) || (center === 'terr' && pc < .3);
+    const libOn = ['asc', 'walk', 'human'].includes(center) || (center === 'campus' && pc > .78) || (center === 'terr' && pc < .3);
     library.group.visible = libOn;
     /* papier peint : intact avant la visite, effacé une fois qu'on est passé de l'autre côté (même en sautant par le menu) */
     if (center !== 'campus') pavilion.dissolveMural(order[center] > order.campus ? 1 : 0);
@@ -407,7 +414,9 @@ async function start() {
     {
       const p = C.hero.p;
       const intro = window.__v2.introAt != null ? window.__v2.introAt : introT0 ? (now - introT0) / 1000 : 0;
-      const outside = ['hero', 'finale'].includes(center) || (center === 'lieu' && pc < .3);
+      /* dehors / dedans : la caméra a-t-elle passé le seuil ? (et non une part du chapitre : on ne voit jamais la photo de dos) */
+      const pastDoor = camera.position.z < pavilion.door.z - .15;
+      const outside = ['hero', 'finale'].includes(center) || (center === 'lieu' && !pastDoor);
       /* le fil de lumière court sur l'allée jusqu'à la porte */
       filU.uTime.value = t; filU.uProg.value = center === 'finale' ? 1 : center === 'hero' ? ss(.04, .62, p) : 1;
       filLine.visible = outside && camera.position.distanceTo(VIEW2) > 5;
@@ -416,7 +425,7 @@ async function start() {
       fx.uniforms.uWhite.value = center === 'hero' ? heroWhite(p) : dive;
       fx.uniforms.uWhiteC.value.set(...(center === 'hero' ? [.9, .93, .97] : [1, .84, .55]));
       /* réel / intérieur : la photo dehors, le modèle dedans */
-      const inside = (center === 'lieu' && pc > .22) || ['campus', 'asc', 'walk', 'human'].includes(center);
+      const inside = (center === 'lieu' && pastDoor) || ['campus', 'asc', 'walk', 'human'].includes(center);
       /* chaque monde n'existe que là où on le voit : la façade réelle dehors, le pavillon modélisé dans la visite, la maquette au territoire */
       const inPav = center === 'lieu' || center === 'campus' || (center === 'asc' && pc < BL);
       real.group.visible = !inside && center !== 'terr';
@@ -450,7 +459,7 @@ async function start() {
       LU.uFade.value = (1 - ss(.27, .32, p)) * (center === 'hero' ? 1 : 0);   /* posé, il s'efface : le vrai logo réapparaît */
       logoPts.visible = center === 'hero';
       if (land > .98 && !logoLanded) { logoLanded = true; cue('logo'); } if (land < .5) logoLanded = false;
-      if (center === 'hero' || (center === 'lieu' && pc < .3)) {
+      if (center === 'hero' || (center === 'lieu' && !pastDoor)) {
         /* lampadaire (clé chaude) et lueur de l'intérieur derrière la porte (contre-jour) */
         key.position.set(pavilion.door.x, 2.4, pavilion.door.z - 4); key.color.set('#FFE2B8'); key.intensity = 6;
         rim.position.set(2.05, 2, -4); rim.color.set('#FFE2B8'); rim.intensity = 8 + 30 * openK;
@@ -470,10 +479,10 @@ async function start() {
     }
 
     /* ----- chapitres ----- */
-    for (const id in SC) { const c = C[id]; if (id !== 'hero' && c && (c.vis || id === center)) SC[id].update(c.p, t, dt, mouse, id === center); }
+    for (const id in SC) { const c = C[id]; if (id !== 'hero' && c && (c.vis || id === center)) SC[id].update(c.p, t, dt, mouse, id === center); else if (SC[id].rest) SC[id].rest(); }
     if (SC.finale) SC.finale.group.visible = C.finale.vis || center === 'finale';
     /* livres : arrachés du mur à la fin de la visite, en vol dans l'atrium, calmes près des lanternes, puis aspirés par la verrière */
-    flock.update(t, center === 'campus' ? { on: pc > .84, burst: ss(.86, .995, pc) }
+    flock.update(t, center === 'campus' ? { on: pc > .87, burst: ss(.89, .995, pc) }
       : ['asc', 'walk', 'human'].includes(center) ? { on: true, calm: center === 'human' ? 1 : 0 }
       : center === 'terr' ? { on: pc < .3, lift: eIO(pc / .3) * 70 } : { on: false });   /* le logo du final ne survit pas quand on remonte */
     /* le papier peint suit la vie de la bibliothèque (rendu réduit, quelques images par seconde) */
@@ -491,7 +500,10 @@ async function start() {
       tmpL.lerpVectors(prev.look, tgt.look, b);
     } else { tmpP.copy(tgt.pos); tmpL.copy(tgt.look); }
     /* au cœur de la bourrasque (image blanche), la caméra saute d'une photo à l'autre sans traverser l'entre-deux */
-    const kk = ready && fx.uniforms.uWhite.value < .9 ? 1 - Math.exp(-4.5 * dt) : 1; ready = true;
+    /* une coupe franche (changement de monde demandé par le chapitre) ne se traverse pas : la caméra saute */
+    /* un monde « coupé » (tgt.hard : les vraies salles, posées hors du pavillon) se rejoint toujours par une coupe */
+    const cutId = tgt.cut || '', snap = cutId !== lastCut && (!!tgt.hard || lastHard || !!(cutId && lastCut)); lastCut = cutId; lastHard = !!tgt.hard;
+    const kk = ready && !snap && fx.uniforms.uWhite.value < .9 && fx.uniforms.uBlack.value < .9 ? 1 - Math.exp(-4.5 * dt) : 1; ready = true;
     camPos.lerp(tmpP, kk); look.lerp(tmpL, kk);
     camera.position.copy(camPos); camera.lookAt(look);
     /* sensation de vol : la caméra s'incline dans les virages ; l'image se dédouble un peu avec la vitesse */
@@ -504,7 +516,7 @@ async function start() {
     fx.uniforms.uCA.value = .0007 + Math.min(.0016, speed * .0001);
     /* focale : celle de la photo d'hiver au départ (aucun bord visible), puis l'œil normal */
     const baseFov = camera.aspect < 1 ? 60 : 46;
-    const tf = center === 'hero' && C.hero.p < HERO_CUT ? fitFov(camera.aspect) : baseFov;
+    const tf = tgt.fov && !(ci > 0 && c.p < BL) ? tgt.fov : center === 'hero' && C.hero.p < HERO_CUT ? fitFov(camera.aspect) : baseFov;
     if (Math.abs(camera.fov - tf) > .01) { camera.fov = tf; camera.updateProjectionMatrix(); }
 
     const navId = { hero: 'da-accueil', lieu: 'da-campus', campus: 'da-campus', asc: 'da-formations', walk: 'da-parcours', human: 'da-accompagnement', terr: 'da-contact', finale: 'da-contact' }[center];

@@ -9,7 +9,7 @@
 import { prefs } from './prefs.js';
 
 const FILES = { logo: 'sfx-logo.mp3', borne: 'sfx-borne.mp3', coupe: 'sfx-coupe.mp3', slogan: 'voix-slogan.mp3' };
-const LEVEL = { music: .32, logo: .55, borne: .4, coupe: .45, slogan: 1 };
+const LEVEL = { music: .32, logo: .55, borne: .4, coupe: .45, slogan: 1, neon: .35 };
 const GESTURES = ['pointerdown', 'keydown', 'touchend'];
 
 export function initSound(ctx) {
@@ -70,8 +70,24 @@ export function initSound(ctx) {
     src.start();
   }
 
+  /* néon qui s'allume : claquements du starter puis bourdonnement du secteur (100 Hz), synthétisés sur place */
+  let noise = null;
+  function neon() {
+    const t0 = ac.currentTime;
+    if (!noise) { noise = ac.createBuffer(1, ac.sampleRate * .05, ac.sampleRate); const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); }
+    [0, .08, .17, .27, .36].forEach((dt, i) => {
+      const src = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = noise; hp.type = 'highpass'; hp.frequency.value = 1800; g.gain.value = LEVEL.neon * (i === 4 ? 1 : .55);
+      src.connect(hp).connect(g).connect(master); src.start(t0 + dt);
+    });
+    const lp = ac.createBiquadFilter(), g = ac.createGain(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(g).connect(master);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(LEVEL.neon * .12, t0 + .38); g.gain.setTargetAtTime(LEVEL.neon * .03, t0 + .6, .5); g.gain.setTargetAtTime(0, t0 + 2.4, .3);
+    [100, 200].forEach((f, i) => { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const og = ac.createGain(); og.gain.value = i ? .4 : 1; o.connect(og).connect(lp); o.start(t0); o.stop(t0 + 3.6); });
+  }
+
   function cue(name) {
     if (!on) return;
+    if (name === 'neon') { if (ac) neon(); return; }
     if (!ac || !buffers[name]) { if (name === 'slogan') pendingSlogan = performance.now(); return; }
     play(name);
   }

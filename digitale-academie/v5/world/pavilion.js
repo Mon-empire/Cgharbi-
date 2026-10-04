@@ -57,6 +57,7 @@ export async function createPavilion(ctx) {
     grey: new THREE.MeshStandardMaterial({ color: '#7D8186', roughness: .6 }),
     chrome: new THREE.MeshStandardMaterial({ color: '#E8ECEF', roughness: .12, metalness: 1 })
   };
+  const tubeC = M.tube.color.clone().multiplyScalar(1 / 2.2), screens = [];
   const box = (w, h, d, m) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
   const at = (o, x, y, z) => { o.position.set(x, y, z); EXT.add(o); return o; };
   /* mur texturé : le motif de joints se répète tous les 2,4 m */
@@ -162,7 +163,9 @@ export async function createPavilion(ctx) {
       inAt(box(.34, .3, .02, M.grey), sx, .95, sz - .18); }
   }
   const vend = inAt(box(.9, 1.85, .75, M.dark), 11.2, .93, -6.5);
-  inAt(box(.6, 1.1, .02, new THREE.MeshBasicMaterial({ color: new THREE.Color('#BFD9F2').multiplyScalar(1.4), toneMapped: false })), 10.74, 1.15, -6.5).rotation.y = -Math.PI / 2;
+  const vendMat = new THREE.MeshBasicMaterial({ color: new THREE.Color('#BFD9F2').multiplyScalar(1.4), toneMapped: false });
+  inAt(box(.6, 1.1, .02, vendMat), 10.74, 1.15, -6.5).rotation.y = -Math.PI / 2;
+  screens.push({ m: vendMat, c: new THREE.Color('#BFD9F2').multiplyScalar(1.4 / 1.3) });
   inAt(new THREE.Mesh(new THREE.CylinderGeometry(.2, .18, .7, 18), M.chrome), 9.6, .35, -7.4);
   /* coin détente : chaises vertes et grises, table basse */
   for (const [x, z, c] of [[5, -2.9, 'green'], [7.2, -3, 'grey'], [4.6, -7.4, 'green'], [8.2, -7.2, 'grey']]) { inAt(box(.5, .08, .5, M[c]), x, .45, z); inAt(box(.5, .45, .07, M[c]), x, .7, z - .22); }
@@ -175,7 +178,9 @@ export async function createPavilion(ctx) {
     if (screen) {
       const p = box(1.4, .55, .03, new THREE.MeshStandardMaterial({ color: '#EDEDED', roughness: .9 })); p.position.set(0, 1.02, -.37); g.add(p);
       const mon = box(.55, .34, .03, M.dark); mon.position.set(0, 1.0, -.25); g.add(mon);
-      const scr = new THREE.Mesh(new THREE.PlaneGeometry(.5, .29), new THREE.MeshBasicMaterial({ color: new THREE.Color(['#5FA7E8', '#F2B33D', '#7ED0C3'][Math.floor(Math.random() * 3)]).multiplyScalar(1.3), toneMapped: false })); scr.position.set(0, 1.0, -.233); g.add(scr);
+      const sc = new THREE.Color(['#5FA7E8', '#F2B33D', '#7ED0C3'][Math.floor(Math.random() * 3)]);
+      const scr = new THREE.Mesh(new THREE.PlaneGeometry(.5, .29), new THREE.MeshBasicMaterial({ color: sc.clone().multiplyScalar(1.3), toneMapped: false })); scr.position.set(0, 1.0, -.233); g.add(scr);
+      screens.push({ m: scr.material, c: sc });
       const kb = box(.42, .02, .14, M.dark); kb.position.set(0, .77, .05); g.add(kb);
     }
     const ch = box(.45, .06, .45, M.chair); ch.position.set(0, .46, .55); g.add(ch); const bk = box(.45, .45, .05, M.chair); bk.position.set(0, .72, .77); g.add(bk);
@@ -208,6 +213,11 @@ export async function createPavilion(ctx) {
   return {
     group: G, exterior: EXT, interior: IN, mural, muralMat, leaves, lampHeads, kahlo, mandela, sign, logo,
     door: new THREE.Vector3(2.05, 0, -1.95),
+    /* l'électricité du pavillon : 0 = éteint (veilleuses), 1 = néons allumés ; les écrans restent en veille */
+    power(k) {
+      M.ceil.emissiveIntensity = .22 * k; M.tube.color.copy(tubeC).multiplyScalar(.02 + 2.2 * k);
+      screens.forEach(s => s.m.color.copy(s.c).multiplyScalar(.35 + .95 * k));
+    },
     /* ouverture des portes (0 → 1) */
     open(k) { const e = k * k * (3 - 2 * k); leaves.forEach(l => { l.pivot.rotation.y = -l.dir * e * 1.75; }); },
     /* mur du fond qui s'efface : la bibliothèque devient réelle */
