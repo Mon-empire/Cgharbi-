@@ -66,8 +66,8 @@ export async function create(ctx, el) {
   const pos = new Float32Array(N * 3), aT1 = new Float32Array(N * 3), aT2 = new Float32Array(N * 3), aS = new Float32Array(N), aL = new Float32Array(N);
   const door = pavilion.door;
   for (let i = 0; i < N; i++) {
-    /* départ : dehors, dans la lumière de la porte */
-    pos.set([door.x + rnd(-.7, .7), rnd(.2, 2.3), door.z + rnd(.4, 3.5)], i * 3);
+    /* départ : dans l'embrasure de la porte, de part et d'autre du seuil : c'est la lumière qui attire depuis l'allée */
+    pos.set([door.x + rnd(-.9, .9), rnd(.25, 2.4), door.z + rnd(-3.2, .7)], i * 3);
     aT1.set(samplePt().toArray(), i * 3);
     let r = (i + Math.random() * .5) / N * total, k = 0; while (k < segs.length - 1 && r > segs[k][4]) { r -= segs[k][4]; k++; }
     const [x0, z0, x1, z1, L] = segs[k], u = Math.min(1, r / L);
@@ -77,17 +77,17 @@ export async function create(ctx, el) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aT1', new THREE.BufferAttribute(aT1, 3));
   geo.setAttribute('aT2', new THREE.BufferAttribute(aT2, 3)); geo.setAttribute('aS', new THREE.BufferAttribute(aS, 1)); geo.setAttribute('aL', new THREE.BufferAttribute(aL, 1));
-  const U = { uTime: { value: 0 }, uIn: { value: 0 }, uFloor: { value: 0 }, uOut: { value: 0 }, uPix: { value: ctx.renderer.getPixelRatio() }, uCam: { value: new THREE.Vector3() } };
+  const U = { uPre: { value: 0 }, uTime: { value: 0 }, uIn: { value: 0 }, uFloor: { value: 0 }, uOut: { value: 0 }, uPix: { value: ctx.renderer.getPixelRatio() }, uCam: { value: new THREE.Vector3() } };
   const pts = new THREE.Points(geo, new THREE.ShaderMaterial({
     uniforms: U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false,
-    vertexShader: `attribute vec3 aT1,aT2;attribute float aS,aL;uniform float uTime,uIn,uFloor,uOut,uPix;uniform vec3 uCam;varying vec3 vC;varying float vA;
+    vertexShader: `attribute vec3 aT1,aT2;attribute float aS,aL;uniform float uTime,uIn,uFloor,uOut,uPix,uPre;uniform vec3 uCam;varying vec3 vC;varying float vA;
       vec3 bez(vec3 a,vec3 b,vec3 c,float t){return mix(mix(a,b,t),mix(b,c,t),t);}
       void main(){
         /* arrivée : chaque point passe près de la caméra (par-dessus l'épaule) avant de trouver sa place */
         float k=clamp(uIn*1.7-aS*.7,0.,1.);float e=k*k*(3.-2.*k);
         vec3 mid=mix(position,aT1,.45)+vec3(sin(aS*40.)*1.4,.8+cos(aS*23.)*.9,cos(aS*31.)*1.2);
         vec3 p=bez(position,mid,aT1,e);
-        p+=vec3(sin(uTime*.9+aS*60.),cos(uTime*.7+aS*40.),sin(uTime*.8+aS*20.))*.025*e;
+        p+=vec3(sin(uTime*.9+aS*60.),cos(uTime*.7+aS*40.),sin(uTime*.8+aS*20.))*(.025*e+.07*(1.-e)*uPre);
         /* chute vers la fibre : légère avance selon la distance au sol réseau (on voit la nappe se poser depuis la porte) */
         float f=clamp(uFloor*1.6-aS*.25-aL*.012,0.,1.);float ef=f*f*(3.-2.*f);
         vec3 arc=mix(p,aT2,.5)+vec3(0.,.6*(1.-abs(ef*2.-1.)),0.);
@@ -97,7 +97,7 @@ export async function create(ctx, el) {
         gl_PointSize=uPix*mix(2.4,1.7,ef)*(1.+pulse*ef*1.2)*(8./max(.6,-mv.z));
         vec3 warm=mix(vec3(1.,.78,.4),vec3(1.,.92,.7),aS);vec3 fib=mix(vec3(1.,.82,.35),vec3(.75,.9,1.),step(.82,aS));
         vC=mix(warm*1.7,fib*(1.1+pulse*2.6),ef);
-        vA=smoothstep(0.,.05,uIn-aS*.55)*(1.-uOut)*mix(.85+.15*sin(uTime*3.+aS*80.),1.,e);}`,
+        vA=max(smoothstep(0.,.05,uIn-aS*.55),uPre*(.45+.25*sin(uTime*2.+aS*70.)))*(1.-uOut)*mix(.85+.15*sin(uTime*3.+aS*80.),1.,e);}`,
     fragmentShader: `varying vec3 vC;varying float vA;void main(){vec2 c=gl_PointCoord-.5;float r=length(c);if(r>.5)discard;gl_FragColor=vec4(vC*(1.-smoothstep(0.,.5,r))*vA,1.);}`
   }));
   pts.frustumCulled = false; pts.visible = false; ctx.scene.add(pts);
@@ -115,10 +115,12 @@ export async function create(ctx, el) {
   });
   const HOVER = V(5.2, 1.55, -5.4);
 
-  let lit = 1, act0 = -1, neonSaid = false;
+  let lit = 1, act0 = -1, neonSaid = false, preK = 0;
   return {
     /* hors du chapitre : la nuée et les lucioles disparaissent (elles ne doivent pas traîner dans la visite) */
-    rest() { pts.visible = false; luc.forEach(L => { L.orb.visible = L.trail.visible = false; L.init = false; }); },
+    /* fin de l'ouverture : la nuée attend déjà dans l'embrasure (k de 0 à 1) */
+    prelude(k, t) { preK = k; if (k <= 0) return; pts.visible = true; U.uPre.value = k; U.uIn.value = 0; U.uFloor.value = 0; U.uOut.value = 0; U.uTime.value = t; },
+    rest() { if (preK > 0) return; pts.visible = false; luc.forEach(L => { L.orb.visible = L.trail.visible = false; L.init = false; }); },
     cam(p, m) {
       const s = shot(p);
       s.pos.x += m.sx * .2; s.pos.y += m.sy * .08;
@@ -127,12 +129,12 @@ export async function create(ctx, el) {
     update(p, t, dt, m, isCurrent) {
       /* l'électricité : on entre dans le pavillon éteint ; à la fin, les néons s'allument (quelques battements) */
       const dark = ss(.04, .16, p), on = ss(.84, 1, p);
-      const power = on > 0 ? flicker(on) : 1 - dark * .97;
+      const power = on > 0 ? flicker(on) : .03 + .12 * (1 - dark);
       if (isCurrent) { pavilion.power(power); lit = power; }
       if (on > 0 && !neonSaid && isCurrent) { neonSaid = true; ctx.cue('neon'); } if (on === 0) neonSaid = false;
 
-      U.uTime.value = t; U.uIn.value = ss(.06, .4, p); U.uFloor.value = ss(.46, .64, p); U.uOut.value = ss(.9, 1, p);
-      pts.visible = isCurrent && p > .05 && p < .999;
+      U.uPre.value = 1 - ss(.08, .3, p); U.uTime.value = t; U.uIn.value = ss(.06, .4, p); U.uFloor.value = ss(.46, .64, p); U.uOut.value = ss(.9, 1, p);
+      pts.visible = isCurrent && p < .999;
 
       /* lucioles : se détachent de la fibre, s'élèvent en spirale, tournent ensemble, puis filent vers la visite */
       const rise = eOut(ss(.62, .76, p)), leave = eIO(ss(.88, 1, p));

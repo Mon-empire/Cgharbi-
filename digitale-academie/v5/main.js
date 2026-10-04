@@ -37,11 +37,14 @@ if (motionBtn) {
   motionBtn.setAttribute('aria-pressed', String(reduce));
   motionBtn.addEventListener('click', () => { try { localStorage.setItem('da-motion', reduce ? 'on' : 'off'); } catch (e) { /* */ } location.reload(); });
 }
+const booting = R.classList.contains('is-booting');
+const unboot = () => R.classList.remove('is-booting');
+if (reduce || !hasGL) R.classList.remove('is-live', 'is-booting');
 if (reduce) say('Animations réduites : version sans 3D.');
 else if (!hasGL) say('WebGL 2 indisponible sur ce navigateur : version sans 3D.');
 else {
   say('Chargement du monde…');
-  start().then(() => say('')).catch(e => { console.warn('[Digitale Académie] scène indisponible :', e); R.classList.remove('is-live'); say('Scène 3D indisponible : ' + (e && e.message || e)); });
+  start().then(() => say('')).catch(e => { console.warn('[Digitale Académie] scène indisponible :', e); R.classList.remove('is-live'); unboot(); say('Scène 3D indisponible : ' + (e && e.message || e)); });
 }
 
 async function start() {
@@ -257,37 +260,60 @@ async function start() {
   const VIEW = real.viewpoint, AHEAD = VIEW.clone().addScaledVector(real.forward, 30);
   const VIEW2 = real.viewpoint2, AHEAD2 = VIEW2.clone().addScaledVector(real.forward2, 12);
   const THRESHOLD = new THREE.Vector3(pavilion.door.x, 1.62, pavilion.door.z + 2.2), INSIDE = new THREE.Vector3(pavilion.door.x, 1.45, pavilion.door.z - 6);
-  const HERO_CUT = .33;
-  const heroWhite = p => ss(.25, .31, p) * (1 - ss(.35, .43, p));
+  /* plan-séquence : de la photo d'hiver 2019 (loin) à la photo d'automne 2023 (devant l'entrée), sans coupe.
+     Les deux photos sont recalées sur les mêmes volumes : la caméra vole de l'une à l'autre pendant que la saison
+     change (bourrasque de neige → feuilles). Plus de voile blanc : c'était la cause du flash blanc au démarrage. */
+  const APPROACH = new THREE.CatmullRomCurve3([VIEW.clone(), VIEW.clone().addScaledVector(real.forward, 5), VIEW2.clone().addScaledVector(real.forward2, -3.2), VIEW2.clone().addScaledVector(real.forward2, -1.2)], false, 'centripetal');
+  const gust = p => ss(.2, .32, p) * (1 - ss(.42, .56, p));
   const heroScene = {
     cam(p, m) {
       /* hiver : on entre de quelques pas dans la photo de 2019 ; une bourrasque de neige blanchit l'image (p ≈ .33) ;
          quand elle se dissipe, c'est l'automne, devant l'entrée (photo prise de là) ; puis le seuil */
       const b = eIO(ss(.6, .94, p));
       let pos, look;
-      if (p < HERO_CUT) { pos = VIEW.clone().addScaledVector(real.forward, 4.5 * eIO(ss(.04, HERO_CUT, p))); look = AHEAD.clone(); }
-      else {
-        pos = VIEW2.clone().addScaledVector(real.forward2, -1.2 * (1 - eIO(ss(HERO_CUT, .58, p)))).lerp(THRESHOLD, b);
-        look = AHEAD2.clone().lerp(INSIDE, eIO(ss(.7, 1, p)));
-      }
+      pos = APPROACH.getPoint(eIO(ss(.04, .58, p))).lerp(THRESHOLD, b);
+      look = AHEAD.clone().lerp(AHEAD2, eIO(ss(.12, .52, p))).lerp(INSIDE, eIO(ss(.7, 1, p)));
       pos.x += m.sx * .3 * (1 - b); pos.y += m.sy * .12 * (1 - b);
       return { pos, look };
     }
   };
+
+  /* ---------- photo → espace : les arêtes des volumes recalés sur la photo s'allument en lumière jaune ----------
+     Ce sont les vraies lignes de la façade (les volumes ont été reconstruits depuis la photo) : elles se tracent depuis la porte,
+     prolongent l'architecture dans la profondeur que la photo ne montre pas, puis s'effacent quand on entre dans l'image. */
+  const archU = { uProg: { value: 0 }, uAlpha: { value: 0 }, uTime: { value: 0 } };
+  const arch = (() => {
+    const pos = [], dist = [], O = real.logo.clone().setY(0), a = new THREE.Vector3();
+    real.group.updateMatrixWorld(true);
+    real.group.traverse(o => {
+      if (!o.isMesh || o.geometry.type !== 'BoxGeometry' || o.parent !== real.group && o.parent !== real.entrance) return;
+      const prm = o.geometry.parameters; if (prm.width < .3 && prm.depth < .3) return;
+      const e = new THREE.EdgesGeometry(o.geometry), pa = e.attributes.position;
+      for (let i = 0; i < pa.count; i++) { a.fromBufferAttribute(pa, i).applyMatrix4(o.matrixWorld); pos.push(a.x, a.y, a.z); dist.push(a.distanceTo(O)); }
+    });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('aD', new THREE.Float32BufferAttribute(dist, 1));
+    const l = new THREE.LineSegments(g, new THREE.ShaderMaterial({
+      uniforms: archU, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
+      vertexShader: 'attribute float aD;varying float vD;void main(){vD=aD;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader: `uniform float uProg,uAlpha,uTime;varying float vD;void main(){float lit=1.-smoothstep(uProg-1.5,uProg,vD);float front=exp(-pow((vD-uProg)*.9,2.));
+        gl_FragColor=vec4(vec3(1.,.78,.12)*(lit*.75+front*2.2)*uAlpha*(.9+.1*sin(uTime*3.-vD)),1.);}`
+    }));
+    l.frustumCulled = false; l.renderOrder = 5; scene.add(l); return l;
+  })();
 
   /* ---------- l'air du lieu : givre d'hiver qui devient feuilles d'automne en approchant ---------- */
   const AN = mobile ? 900 : 2600;
   const ap = new Float32Array(AN * 3), as = new Float32Array(AN);
   for (let i = 0; i < AN; i++) { ap.set([pavilion.door.x + (Math.random() - .5) * 22, Math.random() * 7, pavilion.door.z + 1 + Math.random() * (VIEW.z - pavilion.door.z)], i * 3); as[i] = Math.random(); }
   const ag = new THREE.BufferGeometry(); ag.setAttribute('position', new THREE.BufferAttribute(ap, 3)); ag.setAttribute('aS', new THREE.BufferAttribute(as, 1));
-  const AU = { uTime: { value: 0 }, uSeason: { value: 0 }, uPix: { value: renderer.getPixelRatio() }, uAmt: { value: 1 } };
+  const AU = { uTime: { value: 0 }, uSeason: { value: 0 }, uPix: { value: renderer.getPixelRatio() }, uAmt: { value: 1 }, uGust: { value: 0 } };
   const air = new THREE.Points(ag, new THREE.ShaderMaterial({
     uniforms: AU, transparent: true, depthWrite: false, fog: false,
-    vertexShader: `uniform float uTime,uSeason,uPix,uAmt;attribute float aS;varying float vS;varying float vA;varying float vR;
+    vertexShader: `uniform float uTime,uSeason,uPix,uAmt,uGust;attribute float aS;varying float vS;varying float vA;varying float vR;
       void main(){vec3 p=position;float sp=mix(.12,.9,uSeason)*(.6+aS);
-        p.y=mod(p.y-uTime*sp,7.);p.x+=sin(uTime*(.3+aS)+aS*40.)*mix(.15,.8,uSeason);p.z+=cos(uTime*.4+aS*20.)*.2;
+        p.y=mod(p.y-uTime*sp*(1.+uGust*2.5),7.);p.x+=sin(uTime*(.3+aS)+aS*40.)*mix(.15,.8,uSeason)+uGust*(sin(uTime*1.7+aS*90.)*1.6+2.2*fract(aS*7.+uTime*.35));p.z+=cos(uTime*.4+aS*20.)*.2;
         vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
-        gl_PointSize=uPix*mix(1.6+aS*1.6,7.+aS*7.,uSeason)*(6./-mv.z);
+        gl_PointSize=min(uPix*28.,uPix*mix(1.6+aS*1.6,7.+aS*7.,uSeason)*(1.+uGust*1.4)*(6./max(.5,-mv.z)));
         vS=aS;vR=uTime*(1.+aS*3.)+aS*30.;vA=uAmt*smoothstep(0.,.6,p.y)*(.55+.45*sin(uTime*3.+aS*60.)*(1.-uSeason));}`,
     fragmentShader: `uniform float uSeason;varying float vS;varying float vA;varying float vR;
       void main(){vec2 c=gl_PointCoord-.5;float cs=cos(vR),sn=sin(vR);c=mat2(cs,-sn,sn,cs)*c;
@@ -359,7 +385,7 @@ async function start() {
   const chapterById = Object.fromEntries(chapters.map(c => [c.el.id, c]));
   navLinks.forEach(a => a.addEventListener('click', e => { const c = chapterById[a.getAttribute('href').slice(1)]; if (!c) return; e.preventDefault(); scrollToChapter(c, 0); history.replaceState(null, '', a.getAttribute('href')); }));
 
-  let current = null, introT0 = 0, fade = 1, logoLanded = false, sloganSaid = false, doorSaid = false, navCur = '', ready = false, muralTick = 0;
+  let current = null, introT0 = 0, fade = booting ? 0 : 1, logoLanded = false, sloganSaid = false, doorSaid = false, navCur = '', ready = false, muralTick = 0;
   const probe = { n: 0, sum: 0, drops: 0 };
   const camPos = new THREE.Vector3(.6, 1.75, 34), look = new THREE.Vector3(1.4, 2.2, -2), tmpP = new THREE.Vector3(), tmpL = new THREE.Vector3();
   const prevCam = new THREE.Vector3(), tmpV = new THREE.Vector3(), tmpF = new THREE.Vector3(), tmpR = new THREE.Vector3();
@@ -417,13 +443,17 @@ async function start() {
       /* dehors / dedans : la caméra a-t-elle passé le seuil ? (et non une part du chapitre : on ne voit jamais la photo de dos) */
       const pastDoor = camera.position.z < pavilion.door.z - .15;
       const outside = ['hero', 'finale'].includes(center) || (center === 'lieu' && !pastDoor);
+      /* photo → espace : les lignes de l'architecture se tracent à l'aube, puis s'effacent quand la caméra entre dans l'image */
+      archU.uTime.value = t; archU.uProg.value = ss(.05, .26, p) * 40; archU.uAlpha.value = center === 'hero' ? ss(.04, .08, p) * (1 - ss(.24, .36, p)) * .9 : 0;
+      arch.visible = archU.uAlpha.value > .002;
       /* le fil de lumière court sur l'allée jusqu'à la porte */
       filU.uTime.value = t; filU.uProg.value = center === 'finale' ? 1 : center === 'hero' ? ss(.04, .62, p) : 1;
       filLine.visible = outside && camera.position.distanceTo(VIEW2) > 5;
       /* voiles : bourrasque de neige (blanc froid) à l'ouverture ; plongée dans le faisceau doré entre la maquette et le final */
       const dive = center === 'terr' ? ss(.86, .99, pc) : center === 'finale' ? 1 - ss(.04, .17, pc) : 0;
-      fx.uniforms.uWhite.value = center === 'hero' ? heroWhite(p) : dive;
-      fx.uniforms.uWhiteC.value.set(...(center === 'hero' ? [.9, .93, .97] : [1, .84, .55]));
+      fx.uniforms.uWhite.value = center === 'hero' ? 0 : dive * .92;
+      /* plongée dans le faisceau : un ambre profond (jamais une image blanche), la coupe se fait au cœur du voile */
+      fx.uniforms.uWhiteC.value.set(.5, .33, .1);
       /* réel / intérieur : la photo dehors, le modèle dedans */
       const inside = (center === 'lieu' && pastDoor) || ['campus', 'asc', 'walk', 'human'].includes(center);
       /* chaque monde n'existe que là où on le voit : la façade réelle dehors, le pavillon modélisé dans la visite, la maquette au territoire */
@@ -445,10 +475,13 @@ async function start() {
       real.open(openK);
       /* la saison suit la marche : hiver loin de la porte, automne devant elle */
       const near = 1 - ss(1.2, 6, camera.position.distanceTo(VIEW2));
-      const seasonK = center === 'hero' ? (p < HERO_CUT ? 0 : 1) : near;
+      const seasonK = center === 'hero' ? ss(.27, .5, p) : near;
+      AU.uGust.value = center === 'hero' ? gust(p) : 0;
       real.season(outside ? seasonK : 1);
       AU.uTime.value = t; AU.uSeason.value = seasonK; AU.uAmt.value = outside ? 1 : 0; air.visible = outside;
-      pool.material.uniforms.uI.value = openK * (outside ? 1 : 0); shaft.material.uniforms.uI.value = openK * (outside ? 1 : 0);
+      pool.material.uniforms.uI.value = openK * (outside ? 1 : 0);
+      /* le faisceau se voit de loin ; de près, la caméra le traverserait (voile laiteux sur toute l'image) : il s'efface */
+      shaft.material.uniforms.uI.value = openK * (outside ? 1 : 0) * ss(1.6, 4, camera.position.distanceTo(shaft.position));
       if (openK > .3 && !doorSaid) { doorSaid = true; cue('coupe'); } if (openK < .1) doorSaid = false;
       /* logo : naît dans le ciel de pluie, se pose sur le logo réel au-dessus de la porte */
       LU.uTime.value = t; LU.uReveal.value = ss(.2, 1.6, intro);
@@ -459,10 +492,14 @@ async function start() {
       LU.uFade.value = (1 - ss(.27, .32, p)) * (center === 'hero' ? 1 : 0);   /* posé, il s'efface : le vrai logo réapparaît */
       logoPts.visible = center === 'hero';
       if (land > .98 && !logoLanded) { logoLanded = true; cue('logo'); } if (land < .5) logoLanded = false;
+      /* derrière la porte : le pavillon est dans la pénombre ; la lumière chaude, c'est la nuée qui attend dans l'embrasure */
+      const pre = center === 'hero' ? ss(.62, .84, p) : 0;
+      if (center === 'hero') pavilion.power(1 - .85 * pre);
+      if (SC.lieu && SC.lieu.prelude) SC.lieu.prelude(pre, t);
       if (center === 'hero' || (center === 'lieu' && !pastDoor)) {
         /* lampadaire (clé chaude) et lueur de l'intérieur derrière la porte (contre-jour) */
         key.position.set(pavilion.door.x, 2.4, pavilion.door.z - 4); key.color.set('#FFE2B8'); key.intensity = 6;
-        rim.position.set(2.05, 2, -4); rim.color.set('#FFE2B8'); rim.intensity = 8 + 30 * openK;
+        rim.position.set(2.05, 1.8, -3.2); rim.color.set('#FFC873'); rim.intensity = 3 + 7 * openK;
       }
       const k1 = eOut(ss(.68, .8, p)), k2 = eOut(ss(.8, .92, p));
       h1.style.transform = `translate3d(0,${(1 - k1) * 110}%,0)`; h2.style.transform = `translate3d(0,${(1 - k2) * 110}%,0)`;
@@ -503,7 +540,7 @@ async function start() {
     /* une coupe franche (changement de monde demandé par le chapitre) ne se traverse pas : la caméra saute */
     /* un monde « coupé » (tgt.hard : les vraies salles, posées hors du pavillon) se rejoint toujours par une coupe */
     const cutId = tgt.cut || '', snap = cutId !== lastCut && (!!tgt.hard || lastHard || !!(cutId && lastCut)); lastCut = cutId; lastHard = !!tgt.hard;
-    const kk = ready && !snap && fx.uniforms.uWhite.value < .9 && fx.uniforms.uBlack.value < .9 ? 1 - Math.exp(-4.5 * dt) : 1; ready = true;
+    const kk = ready && !snap && fx.uniforms.uWhite.value < .88 && fx.uniforms.uBlack.value < .9 ? 1 - Math.exp(-4.5 * dt) : 1; ready = true;
     camPos.lerp(tmpP, kk); look.lerp(tmpL, kk);
     camera.position.copy(camPos); camera.lookAt(look);
     /* sensation de vol : la caméra s'incline dans les virages ; l'image se dédouble un peu avec la vitesse */
@@ -516,7 +553,7 @@ async function start() {
     fx.uniforms.uCA.value = .0007 + Math.min(.0016, speed * .0001);
     /* focale : celle de la photo d'hiver au départ (aucun bord visible), puis l'œil normal */
     const baseFov = camera.aspect < 1 ? 60 : 46;
-    const tf = tgt.fov && !(ci > 0 && c.p < BL) ? tgt.fov : center === 'hero' && C.hero.p < HERO_CUT ? fitFov(camera.aspect) : baseFov;
+    const tf = tgt.fov && !(ci > 0 && c.p < BL) ? tgt.fov : center === 'hero' ? lerp(fitFov(camera.aspect), baseFov, eIO(ss(.08, .5, C.hero.p))) : baseFov;
     if (Math.abs(camera.fov - tf) > .01) { camera.fov = tf; camera.updateProjectionMatrix(); }
 
     const navId = { hero: 'da-accueil', lieu: 'da-campus', campus: 'da-campus', asc: 'da-formations', walk: 'da-parcours', human: 'da-accompagnement', terr: 'da-contact', finale: 'da-contact' }[center];
@@ -532,5 +569,10 @@ async function start() {
     }
     composer.render(dt);
   }
+  /* démarrage continu : shaders compilés et textures envoyées avant la première image visible ;
+     la toile apparaît par-dessus l'affiche (image identique), puis l'affiche s'en va une fois couverte */
+  try { renderer.compile(scene, camera); } catch (e) { /* */ }
+  tick(performance.now());
   requestAnimationFrame(frame);
+  setTimeout(unboot, 1600);
 }

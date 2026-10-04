@@ -119,7 +119,7 @@
 
 /* ---------- nouveaux chapitres : mode vivant ---------- */
 #da-experience.is-live .v2-walk{height:calc(var(--vh) * 4.2)}
-#da-experience.is-live .v2-human{height:calc(var(--vh) * 3.2)}
+#da-experience.is-live .v2-human{height:calc(var(--vh) * 4.4)}
 #da-experience.is-live .v2-campus{height:calc(var(--vh) * 3.2)}
 #da-experience.is-live .v2-terr{height:calc(var(--vh) * 2.4)}
 #da-experience.is-live .v2-fin{height:calc(var(--vh) * 2.2)}
@@ -315,3 +315,46 @@
 #da-experience.is-live .v2-room p:last-child{max-width:28em}
 #da-experience.is-live .v2-campus .v2-credit{top:clamp(84px,12vh,120px);max-width:min(34vw,420px);text-align:right;font-size:12px;line-height:1.45;color:var(--soft)}
 @media (max-width:760px){#da-experience.is-live .v2-campus .v2-credit{left:var(--gut);right:var(--gut);max-width:none;font-size:11px}#da-experience.is-live .v2-rooms{bottom:clamp(70px,14vh,120px)}}
+/* ================= démarrage continu : aucune image blanche, aucune mise en page intermédiaire =================
+   Avant que la 3D soit prête, la première image est la vraie façade, étalonnée comme la première image rendue
+   (nuit d'hiver, fenêtres allumées). La scène 3D apparaît par-dessus, image pour image identique. */
+#da-experience.is-booting::before{content:"";position:fixed;left:0;right:0;top:var(--top);bottom:0;z-index:-1;background:#04080D var(--da-poster,none) center/cover no-repeat;pointer-events:none}
+@media (max-aspect-ratio:4/5){#da-experience.is-booting::before{background-image:var(--da-poster-p,none)}}
+#da-experience.is-booting .v2-hero__t,#da-experience.is-booting .v2-hero__sub,#da-experience.is-booting .v2-scroll,#da-experience.is-booting .v2-nav,#da-experience.is-booting .v2-status{opacity:0}
+#da-experience.is-booting .v2-ch:not(.v2-hero) .v2-stage{opacity:0}
+/* le seul signe d'attente : un fil de lumière jaune qui respire sous le titre, là où le carton-titre apparaîtra */
+#da-experience.is-booting .v2-hero .v2-stage::after{content:"";position:absolute;left:50%;top:64%;width:56px;height:1px;margin-left:-28px;background:var(--signal);box-shadow:0 0 12px rgba(255,214,0,.8);animation:v2-boot 2.4s ease-in-out infinite}
+@keyframes v2-boot{0%,100%{opacity:.25;transform:scaleX(.4)}50%{opacity:1;transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){#da-experience.is-booting .v2-hero .v2-stage::after{animation:none}}
+#da-experience .v2-gl{transition:opacity 1.2s ease}
+/* ================= VI · rupture : « Tu n'étudies pas seul » sur une vraie photo, le titre derrière l'étudiante ================= */
+#da-experience .v2-human__photo{margin:0 0 32px}
+#da-experience .v2-human__frame{position:relative;max-width:980px}
+#da-experience .v2-human__bg{display:block;width:100%;height:auto;border-radius:4px}
+#da-experience .v2-human__threads,#da-experience .v2-human__fg{display:none}
+#da-experience .v2-human__photo .v2-credit{margin-top:8px}
+#da-experience.is-live .v2-human .v2-stage{--pw:max(100vw,calc((var(--vh) - var(--top)) * 1.5));--fx:.5}
+#da-experience.is-live .v2-human__photo{inset:0;margin:0;pointer-events:none}
+/* le cadre garde le format de la photo (3:2) et couvre l'écran : le détourage reste exactement sur la silhouette */
+#da-experience.is-live .v2-human__frame{position:absolute;max-width:none;width:var(--pw);aspect-ratio:3/2;left:calc(50% - var(--pw) * var(--fx));top:calc(50% - var(--pw) / 3)}
+#da-experience.is-live .v2-human__bg,#da-experience.is-live .v2-human__threads,#da-experience.is-live .v2-human__fg{display:block;position:absolute;inset:0;width:100%;height:100%;border-radius:0;transform:scale(var(--k,1.06));transform-origin:62% 52%;opacity:var(--o,0);will-change:transform,opacity}
+#da-experience.is-live .v2-human__bg{z-index:1;filter:saturate(.92) brightness(.92)}
+#da-experience.is-live .v2-human__threads{z-index:2;overflow:visible}
+#da-experience.is-live .v2-human__fg{z-index:4;filter:saturate(.92) brightness(.92)}
+#da-experience.is-live .v2-human__frame::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(4,8,13,.62),rgba(4,8,13,.18) 48%,rgba(4,8,13,0) 70%),linear-gradient(0deg,rgba(4,8,13,.45),rgba(4,8,13,0) 30%);opacity:var(--o,0)}
+#da-experience .v2-thread{fill:none;stroke-width:4.5;stroke-linecap:round}
+#da-experience .v2-thread--y{stroke:#FFD600;filter:drop-shadow(0 0 6px rgba(255,214,0,.9))}
+#da-experience .v2-thread--c{stroke:#00BBDB;filter:drop-shadow(0 0 6px rgba(0,187,219,.9))}
+#da-experience .v2-thread__head--y{fill:#FFF3B0;filter:drop-shadow(0 0 10px #FFD600)}
+#da-experience .v2-thread__head--c{fill:#C8F6FF;filter:drop-shadow(0 0 10px #00BBDB)}
+#da-experience.is-live .v2-human__photo .v2-credit{position:absolute;top:auto;left:auto;right:var(--gut);bottom:clamp(64px,10vh,96px);z-index:5;margin:0;opacity:var(--o,0)}
+/* pendant le silence : le titre seul, immense, entre la salle et l'étudiante ; le reste attend */
+#da-experience.is-live .v2-human__head{transition:top 1.1s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-human__t{transition:font-size 1.1s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-human.is-quiet .v2-human__head{z-index:3;top:34%;max-width:none;right:auto}
+#da-experience.is-live .v2-human.is-quiet .v2-human__head .v2-label{opacity:0}
+#da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(56px,12.6vw,250px);letter-spacing:-.05em;white-space:nowrap}
+#da-experience.is-live .v2-human__list,#da-experience.is-live .v2-work{transition:opacity .8s}
+#da-experience.is-live .v2-human.is-quiet .v2-human__list,#da-experience.is-live .v2-human.is-quiet .v2-work{opacity:0;pointer-events:none}
+#da-experience.is-live .v2-human.is-quiet .v2-stage::before{opacity:0}
+@media (max-aspect-ratio:4/5){#da-experience.is-live .v2-human .v2-stage{--fx:.68}#da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(46px,16vw,110px)}#da-experience.is-live .v2-human.is-quiet .v2-human__head{top:28%}}

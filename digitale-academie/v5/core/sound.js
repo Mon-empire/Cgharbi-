@@ -1,8 +1,7 @@
 /*
   Son de l'expérience (ElevenLabs) : nappe musicale, effets de montage, slogan dit à voix haute.
-  - activé par défaut ; les navigateurs interdisent tout son avant un geste de l'utilisateur,
-    il démarre donc au premier clic, toucher ou touche du clavier, n'importe où sur la page
-  - bouton « Son » toujours visible dans la barre interne pour le couper (RGAA 4.10), choix mémorisé
+  - aucun son non sollicité : le bouton « Activer le son » l'allume, « Son » le coupe (RGAA 4.10) ; choix mémorisé.
+    Si le visiteur l'a déjà activé lors d'une visite précédente, il reprend au premier geste sur la page.
   - la musique s'efface hors de l'expérience et quand l'onglet est masqué
   - rien n'est téléchargé avant le premier geste (la musique est lue en flux)
 */
@@ -26,9 +25,10 @@ export function initSound(ctx) {
     if (!btn) return;
     const waiting = on && !ac;
     btn.setAttribute('aria-pressed', String(on));
-    btn.textContent = on ? 'Son' : 'Son coupé';
-    btn.setAttribute('aria-label', on ? (waiting ? 'Son activé, il démarre au premier clic. Couper le son' : 'Couper le son') : 'Activer le son');
-    btn.classList.toggle('is-waiting', waiting);
+    btn.textContent = on ? 'Son' : 'Activer le son';
+    btn.setAttribute('aria-label', on ? (waiting ? 'Son activé, il reprend au premier clic. Couper le son' : 'Couper le son') : 'Activer le son (musique, ambiance, voix du slogan)');
+    /* une invitation discrète tant que le visiteur n'a pas choisi */
+    btn.classList.toggle('is-waiting', waiting || (!on && !prefs.soundAsked()));
   };
 
   function unlock() {
@@ -88,6 +88,8 @@ export function initSound(ctx) {
   function cue(name) {
     if (!on) return;
     if (name === 'neon') { if (ac) neon(); return; }
+    /* le silence de « Tu n'étudies pas seul » : la musique se retire, puis revient avec les lanternes */
+    if (name === 'calme' || name === 'reprise') { if (ac) { const t = ac.currentTime; musicGain.gain.cancelScheduledValues(t); musicGain.gain.setTargetAtTime(inView ? LEVEL.music * (name === 'calme' ? .25 : 1) : 0, t, name === 'calme' ? .6 : 1.4); } return; }
     if (!ac || !buffers[name]) { if (name === 'slogan') pendingSlogan = performance.now(); return; }
     play(name);
   }

@@ -11,7 +11,13 @@ export async function create(ctx, el) {
   const N = items.length, up = new THREE.Vector3(0, 1, 0);
   const shots = library.anchors.map((a, i) => {
     items[i].style.setProperty('--c', items[i].dataset.color);
-    items[i].querySelector('button').addEventListener('click', () => ctx.scrollTo('asc', (i + .5) / N));
+    const btn = items[i].querySelector('button');
+    /* choisir une formation : la caméra suit le fil jusqu'à son lutrin */
+    btn.addEventListener('click', () => ctx.scrollTo('asc', (i + .5) / N));
+    /* survol ou focus clavier : le lutrin s'allume et la caméra y jette un regard, sans quitter la formation en cours */
+    const on = () => { preview = i; }, off = () => { if (preview === i) preview = -1; };
+    btn.addEventListener('pointerenter', on); btn.addEventListener('focus', on);
+    btn.addEventListener('pointerleave', off); btn.addEventListener('blur', off);
     const w = new THREE.Vector3(); a.g.getWorldPosition(w);
     const fwd = a.inward.clone().negate(), right = new THREE.Vector3().crossVectors(fwd, up).normalize();
     return {
@@ -21,12 +27,14 @@ export async function create(ctx, el) {
     };
   });
   const kOf = p => { const kr = Math.min(1, Math.max(0, p * 1.04 - .02)) * (N - 1), k0 = Math.floor(kr); return k0 + ss(.38, .62, kr - k0); };
-  let active = -1, lastLv = '';
+  let active = -1, lastLv = '', preview = -1, glance = 0, glanceAt = 0;
   return {
     cam(p, m) {
       const k = kOf(p), a = shots[Math.floor(k)], b = shots[Math.min(N - 1, Math.ceil(k))], f = k - Math.floor(k);
       const pos = a.pos.clone().lerp(b.pos, f); pos.y += Math.sin(f * Math.PI) * 2.5 + m.sy * .5; pos.x += m.sx * .8;
-      return { pos, look: a.look.clone().lerp(b.look, f) };
+      const look = a.look.clone().lerp(b.look, f);
+      if (glance > .001 && shots[glanceAt]) { look.lerp(shots[glanceAt].look, .45 * glance); pos.lerp(shots[glanceAt].pos, .12 * glance); }
+      return { pos, look };
     },
     update(p, t, dt, m, isCurrent) {
       const idx = Math.round(kOf(p));
@@ -36,8 +44,10 @@ export async function create(ctx, el) {
         const lv = items[idx].dataset.lv;
         if (lv !== lastLv) { lastLv = lv; levelEl.textContent = lv; levelEl.animate([{ opacity: 0, transform: 'translateY(6%)' }, { opacity: 1, transform: 'none' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }); }
       }
+      if (preview >= 0 && preview !== idx) glanceAt = preview;
+      glance = damp(glance, preview >= 0 && preview !== idx && isCurrent ? 1 : 0, 3, dt);
       library.anchors.forEach((a, i) => {
-        a.on = damp(a.on, i === idx ? 1 : 0, 4, dt);
+        a.on = damp(a.on, i === idx ? 1 : i === preview ? .75 : 0, 4, dt);
         a.bookMat.emissiveIntensity = .3 + 2.2 * a.on;
         a.aura.material.opacity = .12 + .6 * a.on;
         a.glow.scale.setScalar(.6 + .8 * a.on + .1 * Math.sin(t * 3 + i));

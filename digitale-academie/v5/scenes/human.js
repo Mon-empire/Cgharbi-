@@ -1,5 +1,7 @@
 /*
-  ACCOMPAGNEMENT · lanternes dans l'atrium
+  ACCOMPAGNEMENT · d'abord le silence : une vraie photo, la lumière douce, « Tu n'étudies pas seul » — le titre passe derrière
+  l'étudiante du premier plan, deux fils de lumière (jaune, cyan : les deux coachs) traversent la salle.
+  Puis les lanternes dans l'atrium.
   Les sept ateliers sont des lanternes qui quittent le sol de la bibliothèque et montent vers la verrière.
   Les deux coachs sont deux lucioles (jaune, cyan) qui accompagnent la lanterne qui s'élève.
 */
@@ -35,13 +37,20 @@ export async function create(ctx, el) {
     return { orb, trail, pos, TR, phase, init: false };
   };
   const coaches = [coach('#FFD600', 0), coach('#00BBDB', Math.PI)];
-  const launchAt = i => .05 + i * .11;
+  /* la rupture (photo réelle) occupe le premier quart du chapitre ; les lanternes partent ensuite */
+  const Q0 = .3, launchAt = i => Q0 + i * .08;
+  const photo = el.querySelector('.v2-human__photo'), stage = el.querySelector('.v2-stage');
+  const threads = photo ? [...photo.querySelectorAll('.v2-thread')].map((path, k) => {
+    const L = path.getTotalLength(); path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
+    return { path, L, head: photo.querySelectorAll('.v2-thread__head')[k] };
+  }) : [];
+  let quietSaid = false;
   let active = -1;
   return {
     group: G,
     cam(p, m) {
       /* la caméra accompagne la lanterne qui s'élève : légèrement en retrait, côté galerie, jamais hors de l'atrium */
-      const f = Math.max(0, (p - .05) / .11), i0 = Math.min(N - 1, Math.floor(f)), i1 = Math.min(N - 1, i0 + 1), u = ss(.55, 1, f - i0);
+      const f = Math.max(0, (p - Q0) / .08), i0 = Math.min(N - 1, Math.floor(f)), i1 = Math.min(N - 1, i0 + 1), u = ss(.55, 1, f - i0);
       const at = i => lanterns[i].start.clone().lerp(lanterns[i].end, eOut(ss(launchAt(i), launchAt(i) + .3, p)));
       const T = at(i0).lerp(at(i1), u);
       const rel = T.clone().sub(C), a = Math.atan2(rel.z, rel.x) + .5, r = 9.3;
@@ -65,7 +74,23 @@ export async function create(ctx, el) {
         o.flame.scale.setScalar(.8 + .3 * Math.sin(t * 9 + o.ph) + .6 * o.on);
       });
       if (idx !== active) { if (active >= 0 && isCurrent) ctx.cue('borne'); active = idx; items.forEach((li, i) => li.classList.toggle('is-on', i === idx && p >= launchAt(0))); }
-      supports.forEach((d, i) => d.classList.toggle('is-on', p > .02 + i * .06));
+      supports.forEach((d, i) => d.classList.toggle('is-on', p > Q0 + .02 + i * .05));
+      /* le silence : la scène 3D s'éteint, la vraie salle apparaît, le titre glisse derrière l'étudiante */
+      const quiet = p < Q0 - .04;
+      el.classList.toggle('is-quiet', quiet);
+      if (photo) {
+        const o = ss(.01, .06, p) * (1 - ss(Q0 - .07, Q0 - .01, p));
+        stage.style.setProperty('--o', o.toFixed(3));
+        stage.style.setProperty('--k', (1.07 - .05 * ss(0, Q0, p)).toFixed(4));
+        threads.forEach((th, k) => {
+          const d = ss(.08 + k * .03, .22 + k * .03, p), at = th.path.getPointAtLength(th.L * d);
+          th.path.style.strokeDashoffset = (th.L * (1 - d)).toFixed(1);
+          th.head.setAttribute('cx', at.x.toFixed(1)); th.head.setAttribute('cy', at.y.toFixed(1)); th.head.style.opacity = d > .001 && d < .999 ? 1 : 0;
+        });
+        if (isCurrent && ctx.fx) ctx.fx.uniforms.uBlack.value = ss(0, .05, p) * (1 - ss(Q0 - .06, Q0 + .02, p));
+      }
+      if (isCurrent && quiet && p > .03 && !quietSaid) { quietSaid = true; ctx.cue('calme'); }
+      if (isCurrent && !quiet && quietSaid) { quietSaid = false; ctx.cue('reprise'); }
       const target = lanterns[idx].g.position;
       coaches.forEach((c, k) => {
         const a = t * 1.1 + c.phase, x = target.x + Math.cos(a) * 3.2, y = target.y + Math.sin(a * 1.7 + k) * 1.2, z = target.z + Math.sin(a) * 3.2;

@@ -11,7 +11,9 @@ export const prefs = {
   setMotionMode(m) { set(KEY_MODE, m); },
   paused() { return get(KEY_PAUSE) === '1'; },
   setPaused(v) { set(KEY_PAUSE, v ? '1' : '0'); },
-  sound() { return get('da-sound') !== '0'; },   /* activé par défaut */
+  /* le son n'est jamais imposé : il démarre quand le visiteur le demande (bouton « Activer le son »), choix mémorisé */
+  sound() { return get('da-sound') === '1'; },
+  soundAsked() { return get('da-sound') !== null; },
   setSound(v) { set('da-sound', v ? '1' : '0'); },
   forcedLevel() { return get('da-quality'); },
   reduce

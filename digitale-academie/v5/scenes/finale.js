@@ -31,7 +31,7 @@ export async function create(ctx, el) {
       const k = eIO(ss(0, 1, p));
       const pos = V.clone().addScaledVector(F, -1.2 + 1.3 * k).add(new THREE.Vector3(m.sx * .25, .1 + m.sy * .1, 0));
       const look = V.clone().addScaledVector(F, 12).add(new THREE.Vector3(0, .4, 0));
-      return { pos, look };
+      return { pos, look, cut: 'finale', hard: true };   /* on arrive à travers le faisceau : coupe franche, jamais un vol au-dessus de la ville */
     },
     update(p, t) {
       const r = eIO(ss(.3, .82, p)), arc = Math.sin(Math.PI * r);
