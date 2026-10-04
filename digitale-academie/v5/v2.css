@@ -316,10 +316,9 @@
 #da-experience.is-live .v2-campus .v2-credit{top:clamp(84px,12vh,120px);max-width:min(34vw,420px);text-align:right;font-size:12px;line-height:1.45;color:var(--soft)}
 @media (max-width:760px){#da-experience.is-live .v2-campus .v2-credit{left:var(--gut);right:var(--gut);max-width:none;font-size:11px}#da-experience.is-live .v2-rooms{bottom:clamp(70px,14vh,120px)}}
 /* ================= démarrage continu : aucune image blanche, aucune mise en page intermédiaire =================
-   Avant que la 3D soit prête, la première image est la vraie façade, étalonnée comme la première image rendue
-   (nuit d'hiver, fenêtres allumées). La scène 3D apparaît par-dessus, image pour image identique. */
-#da-experience.is-booting::before{content:"";position:fixed;left:0;right:0;top:var(--top);bottom:0;z-index:-1;background:#04080D var(--da-poster,none) center/cover no-repeat;pointer-events:none}
-@media (max-aspect-ratio:4/5){#da-experience.is-booting::before{background-image:var(--da-poster-p,none)}}
+   Le film commence dans le noir : avant que la 3D soit prête, la première image est déjà ce noir, avec un fil de
+   lumière jaune qui respire là où le carton-titre apparaîtra. La scène 3D (noire elle aussi) prend le relais sans saut. */
+#da-experience.is-booting::before{content:"";position:fixed;left:0;right:0;top:var(--top);bottom:0;z-index:-1;background:#020307;pointer-events:none}
 #da-experience.is-booting .v2-hero__t,#da-experience.is-booting .v2-hero__sub,#da-experience.is-booting .v2-scroll,#da-experience.is-booting .v2-nav,#da-experience.is-booting .v2-status{opacity:0}
 #da-experience.is-booting .v2-ch:not(.v2-hero) .v2-stage{opacity:0}
 /* le seul signe d'attente : un fil de lumière jaune qui respire sous le titre, là où le carton-titre apparaîtra */
@@ -327,34 +326,105 @@
 @keyframes v2-boot{0%,100%{opacity:.25;transform:scaleX(.4)}50%{opacity:1;transform:scaleX(1)}}
 @media (prefers-reduced-motion:reduce){#da-experience.is-booting .v2-hero .v2-stage::after{animation:none}}
 #da-experience .v2-gl{transition:opacity 1.2s ease}
-/* ================= VI · rupture : « Tu n'étudies pas seul » sur une vraie photo, le titre derrière l'étudiante ================= */
+/* =====================================================================================================================
+   DIRECTION « LE SEUIL » — photographie et lumière dans le noir ; une seule grammaire typographique
+   · cartons-titres : au début d'un chapitre, le titre seul, centré, immense ; puis il se range en haut à gauche
+   · bandeaux : en bas à gauche, filet jaune, une information à la fois (comme un documentaire)
+   · jamais de texte sur un visage ; toujours un fond sombre sous le texte
+   ===================================================================================================================== */
+#da-experience{--ink:#F5F3EE;--soft:#C8C4BA;--mute:#8E8A80;--night:#020307}
+#da-experience.is-live{background:var(--night)}
+#da-experience.is-live .v2-stage{text-shadow:0 1px 24px rgba(2,3,7,.9),0 0 2px rgba(2,3,7,.7)}
+#da-experience.is-live .v2-label{font-size:12px;letter-spacing:.42em;color:var(--soft)}
+#da-experience.is-live .v2-label::before{width:28px}
+#da-experience.is-live h2{font-weight:600;letter-spacing:-.035em;line-height:.96}
+#da-experience.is-live h2 em{display:block;margin-top:.04em;font-size:1.04em}
+/* bandeau bas-gauche commun */
+#da-experience.is-live .v2-lower{left:var(--gut);bottom:clamp(56px,11vh,120px);max-width:min(560px,80vw)}
+/* carton-titre commun (asc, walk) */
+#da-experience.is-live .v2-asc__head,#da-experience.is-live .v2-walk__head{transition:left 1.2s cubic-bezier(.2,.8,.2,1),top 1.2s cubic-bezier(.2,.8,.2,1),transform 1.2s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-asc__t,#da-experience.is-live .v2-walk__t{transition:font-size 1.2s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-ch.is-card .v2-asc__head,#da-experience.is-live .v2-ch.is-card .v2-walk__head{left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;max-width:90vw}
+#da-experience.is-live .v2-ch.is-card .v2-asc__t,#da-experience.is-live .v2-ch.is-card .v2-walk__t{font-size:clamp(44px,7vw,132px)}
+#da-experience.is-live .v2-ch.is-card .v2-label{justify-content:center}
+#da-experience.is-live .v2-ch.is-card .v2-asc__lead{opacity:0}
+#da-experience.is-live .v2-ch.is-card .v2-steps,#da-experience.is-live .v2-ch.is-card .v2-asc__note,#da-experience.is-live .v2-ch.is-card .v2-walk__steps,#da-experience.is-live .v2-ch.is-card .v2-walk__count{opacity:0}
+#da-experience.is-live .v2-steps,#da-experience.is-live .v2-asc__note,#da-experience.is-live .v2-walk__steps,#da-experience.is-live .v2-walk__count{transition:opacity .9s}
+/* plus de voiles en dégradé posés sur la scène : le noir est déjà là */
+#da-experience.is-live .v2-asc .v2-stage::before,#da-experience.is-live .v2-asc .v2-stage::after,#da-experience.is-live .v2-walk .v2-stage::before,#da-experience.is-live .v2-lieu .v2-stage::before{display:none}
+
+/* ---------- I · le seuil ---------- */
+#da-experience.is-live .v2-kicker{top:64%}
+#da-experience.is-live .v2-kicker span:first-child{font-weight:400;font-size:clamp(18px,2.2vw,34px)}
+#da-experience.is-live .v2-hero__l2{font-weight:700}
+
+/* ---------- II · le lieu : le titre en haut, les chiffres écrits dans l'espace, un bandeau à la fois ---------- */
+#da-experience.is-live .v2-lieu .v2-label{top:clamp(84px,12vh,120px)}
+#da-experience.is-live .v2-lieu__t{top:clamp(110px,16vh,160px);font-size:clamp(28px,3.2vw,56px);transition:opacity .9s}
+#da-experience.is-live .v2-lieu .v2-label{transition:opacity .9s}
+#da-experience.is-live .v2-lieu .v2-facts{left:var(--gut);right:auto;bottom:clamp(56px,11vh,120px);width:min(520px,84vw)}
+#da-experience.is-live .v2-lieu .v2-facts li strong{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#da-experience.is-live .v2-lieu .v2-facts li span{font-size:clamp(17px,1.4vw,22px);color:var(--ink);max-width:24em}
+#da-experience.is-live .v2-lieu .v2-facts li span::before{content:"";display:block;width:32px;height:1px;margin-bottom:14px;background:var(--signal);box-shadow:0 0 10px rgba(255,214,0,.8)}
+#da-experience.is-live .v2-lieu__spaces{left:var(--gut);right:var(--gut);bottom:clamp(24px,5vh,48px);font-size:13px;color:var(--soft)}
+
+/* ---------- III · la visite : bandeau sous la photo ; les salles sans photo sont des cartons dans le noir ---------- */
+#da-experience.is-live .v2-campus .v2-stage::before{height:40%;background:linear-gradient(0deg,rgba(2,3,7,.82),rgba(2,3,7,0))}
+#da-experience.is-live .v2-rooms{bottom:clamp(56px,11vh,120px)}
+#da-experience.is-live .v2-room h3{font-size:clamp(26px,2.6vw,46px);font-weight:600}
+#da-experience.is-live .v2-room .v2-room__n{display:flex;align-items:center;gap:12px}
+#da-experience.is-live .v2-room .v2-room__n::before{content:"";width:28px;height:1px;background:var(--signal);box-shadow:0 0 10px rgba(255,214,0,.8)}
+#da-experience.is-live .v2-campus.is-dark .v2-rooms{left:50%;bottom:auto;top:50%;transform:translate(-50%,-50%);width:min(820px,88vw);text-align:center}
+#da-experience.is-live .v2-campus.is-dark .v2-room{text-align:center}
+#da-experience.is-live .v2-campus.is-dark .v2-room p:last-child{margin:0 auto}
+#da-experience.is-live .v2-campus.is-dark .v2-credit{opacity:0}
+#da-experience.is-live .v2-campus.is-dark .v2-room .v2-room__n{justify-content:center}
+#da-experience.is-live .v2-campus.is-dark .v2-room h3{font-size:clamp(36px,5vw,92px)}
+#da-experience.is-live .v2-campus.is-dark .v2-stage::before{opacity:0}
+#da-experience.is-live .v2-campus .v2-credit{opacity:.85}
+
+/* ---------- IV · les savoirs : la tour au centre, l'index à droite ---------- */
+#da-experience.is-live .v2-asc__level{display:none}
+#da-experience.is-live .v2-asc__head{left:var(--gut);top:clamp(84px,12vh,120px);max-width:min(40vw,620px)}
+#da-experience.is-live .v2-asc__t{font-size:clamp(26px,2.8vw,48px)}
+#da-experience.is-live .v2-steps{right:var(--gut);bottom:clamp(56px,11vh,120px);width:min(28vw,400px)}
+#da-experience.is-live .v2-step.is-on .v2-step__btn{font-size:clamp(28px,2.6vw,46px)}
+#da-experience.is-live .v2-step__body{font-size:15px}
+#da-experience.is-live .v2-asc__note{right:var(--gut);bottom:clamp(18px,4vh,36px);max-width:min(28vw,400px);text-align:right;font-size:12px}
+
+/* ---------- V · le chemin ---------- */
+#da-experience.is-live .v2-walk__head{left:var(--gut);top:clamp(84px,12vh,120px);max-width:min(40vw,620px)}
+#da-experience.is-live .v2-walk__t{font-size:clamp(26px,2.8vw,48px)}
+#da-experience.is-live .v2-walk__count{top:clamp(84px,12vh,120px);font-size:clamp(44px,5vw,92px);font-weight:300;color:var(--soft)}
+#da-experience.is-live .v2-walk__steps{bottom:clamp(56px,11vh,120px)}
+#da-experience.is-live .v2-walk__step h3{font-size:clamp(30px,3.2vw,58px);font-weight:600}
+
+/* ---------- VI · les veilleurs : une vraie photo, plein cadre ; le titre seul, lisible, sur la zone sombre ---------- */
 #da-experience .v2-human__photo{margin:0 0 32px}
 #da-experience .v2-human__frame{position:relative;max-width:980px}
 #da-experience .v2-human__bg{display:block;width:100%;height:auto;border-radius:4px}
-#da-experience .v2-human__threads,#da-experience .v2-human__fg{display:none}
 #da-experience .v2-human__photo .v2-credit{margin-top:8px}
-#da-experience.is-live .v2-human .v2-stage{--pw:max(100vw,calc((var(--vh) - var(--top)) * 1.5));--fx:.5}
-#da-experience.is-live .v2-human__photo{inset:0;margin:0;pointer-events:none}
-/* le cadre garde le format de la photo (3:2) et couvre l'écran : le détourage reste exactement sur la silhouette */
-#da-experience.is-live .v2-human__frame{position:absolute;max-width:none;width:var(--pw);aspect-ratio:3/2;left:calc(50% - var(--pw) * var(--fx));top:calc(50% - var(--pw) / 3)}
-#da-experience.is-live .v2-human__bg,#da-experience.is-live .v2-human__threads,#da-experience.is-live .v2-human__fg{display:block;position:absolute;inset:0;width:100%;height:100%;border-radius:0;transform:scale(var(--k,1.06));transform-origin:62% 52%;opacity:var(--o,0);will-change:transform,opacity}
-#da-experience.is-live .v2-human__bg{z-index:1;filter:saturate(.92) brightness(.92)}
-#da-experience.is-live .v2-human__threads{z-index:2;overflow:visible}
-#da-experience.is-live .v2-human__fg{z-index:4;filter:saturate(.92) brightness(.92)}
-#da-experience.is-live .v2-human__frame::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(4,8,13,.62),rgba(4,8,13,.18) 48%,rgba(4,8,13,0) 70%),linear-gradient(0deg,rgba(4,8,13,.45),rgba(4,8,13,0) 30%);opacity:var(--o,0)}
-#da-experience .v2-thread{fill:none;stroke-width:4.5;stroke-linecap:round}
-#da-experience .v2-thread--y{stroke:#FFD600;filter:drop-shadow(0 0 6px rgba(255,214,0,.9))}
-#da-experience .v2-thread--c{stroke:#00BBDB;filter:drop-shadow(0 0 6px rgba(0,187,219,.9))}
-#da-experience .v2-thread__head--y{fill:#FFF3B0;filter:drop-shadow(0 0 10px #FFD600)}
-#da-experience .v2-thread__head--c{fill:#C8F6FF;filter:drop-shadow(0 0 10px #00BBDB)}
-#da-experience.is-live .v2-human__photo .v2-credit{position:absolute;top:auto;left:auto;right:var(--gut);bottom:clamp(64px,10vh,96px);z-index:5;margin:0;opacity:var(--o,0)}
-/* pendant le silence : le titre seul, immense, entre la salle et l'étudiante ; le reste attend */
-#da-experience.is-live .v2-human__head{transition:top 1.1s cubic-bezier(.2,.8,.2,1)}
-#da-experience.is-live .v2-human__t{transition:font-size 1.1s cubic-bezier(.2,.8,.2,1)}
-#da-experience.is-live .v2-human.is-quiet .v2-human__head{z-index:3;top:34%;max-width:none;right:auto}
+#da-experience.is-live .v2-human .v2-stage::before{display:none}
+#da-experience.is-live .v2-human__photo{inset:0;margin:0;pointer-events:none;opacity:var(--o,0)}
+#da-experience.is-live .v2-human__frame{position:absolute;inset:0;max-width:none;overflow:hidden}
+#da-experience.is-live .v2-human__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 50%;border-radius:0;transform:scale(var(--k,1.06));transform-origin:62% 50%;filter:saturate(.9) brightness(calc(.95 - var(--dim,0) * .5));will-change:transform}
+/* le fond sombre sous le titre : un dégradé du bas, comme sur une image de film */
+#da-experience.is-live .v2-human__frame::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(2,3,7,.88) 0%,rgba(2,3,7,.55) 30%,rgba(2,3,7,0) 58%),linear-gradient(90deg,rgba(2,3,7,calc(.2 + var(--dim,0) * .5)),rgba(2,3,7,0) 70%)}
+#da-experience.is-live .v2-human__photo .v2-credit{position:absolute;top:auto;left:auto;right:var(--gut);bottom:clamp(18px,4vh,36px);margin:0;font-size:12px}
+#da-experience.is-live .v2-human__head{left:var(--gut);top:clamp(84px,12vh,120px);max-width:min(40vw,620px);transition:top 1.2s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-human__t{font-size:clamp(26px,2.8vw,48px);transition:font-size 1.2s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-human.is-quiet .v2-human__head{top:auto;bottom:clamp(48px,9vh,100px);max-width:none}
+#da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(52px,8vw,150px)}
 #da-experience.is-live .v2-human.is-quiet .v2-human__head .v2-label{opacity:0}
-#da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(56px,12.6vw,250px);letter-spacing:-.05em;white-space:nowrap}
-#da-experience.is-live .v2-human__list,#da-experience.is-live .v2-work{transition:opacity .8s}
+#da-experience.is-live .v2-human__list,#da-experience.is-live .v2-work{transition:opacity .9s}
 #da-experience.is-live .v2-human.is-quiet .v2-human__list,#da-experience.is-live .v2-human.is-quiet .v2-work{opacity:0;pointer-events:none}
-#da-experience.is-live .v2-human.is-quiet .v2-stage::before{opacity:0}
-@media (max-aspect-ratio:4/5){#da-experience.is-live .v2-human .v2-stage{--fx:.68}#da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(46px,16vw,110px)}#da-experience.is-live .v2-human.is-quiet .v2-human__head{top:28%}}
+#da-experience.is-live .v2-human__list{background:rgba(2,3,7,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+
+@media (max-width:760px){
+  #da-experience.is-live .v2-asc__head,#da-experience.is-live .v2-walk__head,#da-experience.is-live .v2-human__head{max-width:none;right:var(--gut)}
+  #da-experience.is-live .v2-steps{left:var(--gut);width:auto}
+  #da-experience.is-live .v2-asc__note{display:none}
+  #da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(44px,13vw,80px)}
+  #da-experience.is-live .v2-human__bg{object-position:66% 50%}
+  #da-experience.is-live .v2-walk__count{top:auto;bottom:46vh}
+}

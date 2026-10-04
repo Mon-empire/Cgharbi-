@@ -107,14 +107,14 @@ export async function create(ctx, el) {
         void main(){
           float r=revR(vP.xz),front=uShow*1.35;
           float shown=1.-smoothstep(front-.05,front,r);
-          float ring=exp(-pow((r-front+.025)*26.,2.))*step(.01,uShow)*(1.-step(1.3,uShow));
+          float ring=exp(-pow((r-front+.012)*70.,2.))*step(.01,uShow)*(1.-step(1.3,uShow));
           float lit=clamp(dot(normalize(vN),normalize(vec3(-.5,.75,.35))),0.,1.);
           vec3 col=mix(vec3(.018,.025,.06),vec3(.06,.07,.14),smoothstep(-1.,8.,vP.y))*(.45+.75*lit);
           float c=vP.y/.5;float w=max(fwidth(c),1e-4);float line=1.-smoothstep(0.,w*1.5,abs(fract(c+.5)-.5));
           col+=vec3(.25,.42,.85)*line*.09;
           vec2 uv=vec2((vP.x+uWH.x)/(2.*uWH.x),(vP.z+uWH.y)/(2.*uWH.y));
           vec3 L=texture2D(uLight,uv).rgb;col+=L*1.8*shown;
-          col+=vec3(.6,.85,1.)*ring*1.4;
+          col+=vec3(1.,.78,.25)*ring*.55;   /* le front de la ville : un fil d'or fin, jamais une tache */
           vec2 e=abs(vP.xz)/uWH;float edge=(1.-smoothstep(.6,1.,e.x))*(1.-smoothstep(.55,1.,e.y));
           float a=edge*shown;if(a<.02)discard;
           gl_FragColor=vec4(col,a);}`

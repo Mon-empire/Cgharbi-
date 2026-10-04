@@ -142,7 +142,9 @@ export async function createRealFacade(ctx, { door }) {
           float a1=k*(1.-k2),lum=mix(l,l2,k2/(a1+k2+.001));
           /* montants blancs (clairs sur la photo) : ils restent en silhouette ; le verre garde les nuances de ses reflets */
           float win=min(1.,w1*a1+w2*k2)*(1.-smoothstep(.5,.7,lum))*(.35+lum*1.4);
-          col=col*(1.-.6*min(1.,win)*uLights)+vec3(1.,.64,.3)*win*uLights*1.15;
+          /* la vitre éclairée de l'intérieur garde le détail de la photo (reflets, montants, rideaux) : jamais un aplat */
+          vec3 raw=texture2D(uMap,uv).rgb;
+          col=col*(1.-.6*min(1.,win)*uLights)+(vec3(1.,.64,.3)*.55+raw*vec3(1.25,.8,.42)*1.6)*win*uLights;
           float g=0.;
           for(int i=0;i<3;i++){vec2 d=p1-uLamp[i];float r2=dot(d,d);g+=exp(-r2/500.)*1.6+exp(-r2/9000.)*.35;}
           col+=vec3(1.,.78,.5)*g*a1*uLights;
@@ -230,7 +232,7 @@ export async function createRealFacade(ctx, { door }) {
 
   ctx.scene.add(G);
   return {
-    group: G, entrance: ent, leaves, U, debug: { pc, ray, onGround, atZ, T, doorPhoto, zE, zL, zR, cam2, rms2, params2: best.x, hL: fit.hL0 },
+    group: G, entrance: ent, leaves, U, backdrop: back, debug: { pc, ray, onGround, atZ, T, doorPhoto, zE, zL, zR, cam2, rms2, params2: best.x, hL: fit.hL0 },
     viewpoint2: cam2.position.clone(), forward2, fov2: cam2.fov,
     /* proximité de la seconde photo : 0 = hiver (photo lointaine), 1 = automne (photo proche) */
     season(k) { U.uMix2.value = k; },
