@@ -54,6 +54,8 @@ export async function create(ctx, el) {
       const k = kOf(p), a = anchors[Math.floor(k)], b = anchors[Math.min(N - 1, Math.ceil(k))], f = k - Math.floor(k);
       const pos = a.pos.clone().lerp(b.pos, f); pos.y += Math.sin(f * Math.PI) * 1.5 + m.sy * .4; pos.x += m.sx * .6;
       const look = a.look.clone().lerp(b.look, f);
+      /* écran en hauteur : l'anneau monte dans le tiers supérieur, l'index occupe le bas */
+      if (ctx.camera.aspect < 1) look.y -= 3.2;
       if (glance > .001 && anchors[glanceAt]) { look.lerp(anchors[glanceAt].look, .35 * glance); pos.lerp(anchors[glanceAt].pos, .1 * glance); }
       return { pos, look, cut: 'tour' };
     },

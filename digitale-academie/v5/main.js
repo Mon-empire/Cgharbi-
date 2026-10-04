@@ -438,12 +438,15 @@ async function start() {
     const pastDoor = camera.position.z < DOOR.z + .3;
     const outside = ['hero', 'finale'].includes(center) || (center === 'lieu' && !pastDoor);
     /* les mondes : le ciel et la façade dehors ; le noir partout ailleurs, sauf la maquette du territoire */
-    const skyOn = outside || center === 'terr';
+    /* près de la porte ouverte, plus de ciel : derrière l'embrasure, c'est le noir (la reconstruction n'a pas de fond) */
+    const atDoor = (center === 'hero' && p > .66) || center === 'lieu';
+    const skyOn = (outside && !atDoor) || center === 'terr';
+    real.U.uInside.value.w = atDoor ? 14 : -1;
     sky.group.visible = skyOn; scene.background = skyOn ? null : VOIDC;
     real.group.visible = outside;
     real.backdrop.visible = !(center === 'hero' && p > .66) && center !== 'lieu';
     if (SC.terr) SC.terr.group.visible = C.terr.vis || (center === 'finale' && pc < BL);
-    const dusk = center === 'terr' ? .22 : center === 'finale' ? .8 : .1;
+    const dusk = center === 'terr' ? 0 : center === 'finale' ? .8 : .1;
     sky.update(t, dusk);
     moon.intensity = .9; hemi.intensity = .4; scene.environmentIntensity = .4;
     real.update(camera.position);
@@ -453,7 +456,7 @@ async function start() {
       /* le noir, puis les fenêtres, puis la façade autour d'elles ; enfin le jour qui se lève sur l'approche */
       /* la nuit ne s'efface jamais tout à fait : l'approche finit à l'heure bleue, fenêtres allumées, pour que la porte
          s'ouvre sur un vrai contraste froid / chaud */
-      const winK = ss(.05, .17, p), emerge = ss(.12, .3, p), night = 1 - .45 * ss(.32, .55, p);
+      const winK = ss(.05, .17, p), emerge = ss(.12, .3, p), night = 1 - .28 * ss(.32, .55, p);
       real.grade({
         expo: lerp(0, lerp(1, .62, night), emerge), sat: lerp(1, .72, night), night: .85 * night,
         tint: [lerp(1, .84, night), lerp(1, .92, night), lerp(1, 1.1, night)], lights: winK

@@ -2,7 +2,8 @@
 // à des points précis du film (chapitre:p). Le rendu passe par SwiftShader : prévoir ~1 min de chargement.
 // usage : node banc-essai.mjs sortie "hero:0,lieu:.42,campus:.4" [largeur hauteur]
 //   env : Q=LOW|MEDIUM|HIGH|ULTRA (qualité), N=40 (images de stabilisation par prise), EVAL="expr" (affiche une valeur),
-//         WAIT=ms (laisse finir les transitions CSS), HOVER="sélecteur" (survol avant la prise)
+//         WAIT=ms (laisse finir les transitions CSS), HOVER="sélecteur" (survol avant la prise),
+//         PRE="expr" (exécutée avant chaque prise, pour un test)
 import { chromium } from 'playwright';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -61,10 +62,11 @@ for (const item of spec.split(',')) {
     scrollTo(0, y);
   }, [ch, +p]);
   if (process.env.HOVER) { await page.evaluate(() => window.__v2.settle(20)); await page.hover(process.env.HOVER, { force: true }); }
+  if (process.env.PRE) await page.evaluate(process.env.PRE);
   const t0 = Date.now();
   await page.evaluate(n => window.__v2.settle(n), +(process.env.N || 40));
   process.stderr.write(`settle ${Date.now() - t0}ms\n`);
-  if (process.env.WAIT) await page.waitForTimeout(+process.env.WAIT);
+  if (process.env.WAIT) { await page.waitForTimeout(+process.env.WAIT); await page.evaluate(() => window.__v2.settle(3)); }
   const name = `${prefix}-${ch}-${p}.png`;
   await page.screenshot({ path: name, timeout: 240000 });
   const st = await page.evaluate(() => JSON.stringify(window.__v2.state));

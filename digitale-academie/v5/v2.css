@@ -427,4 +427,13 @@
   #da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(44px,13vw,80px)}
   #da-experience.is-live .v2-human__bg{object-position:66% 50%}
   #da-experience.is-live .v2-walk__count{top:auto;bottom:46vh}
+  /* index des formations : pastilles en ligne, la formation active en dessous, en entier */
+  #da-experience.is-live .v2-steps{display:flex;flex-wrap:wrap;gap:6px 14px;bottom:clamp(40px,8vh,80px)}
+  #da-experience.is-live .v2-step{flex:0 0 auto}
+  #da-experience.is-live .v2-step.is-on{order:9;flex:1 0 100%}
+  #da-experience.is-live .v2-step__btn{font-size:13px;padding:4px 0}
+  #da-experience.is-live .v2-step.is-on .v2-step__btn{font-size:30px}
+  #da-experience.is-live .v2-human__photo .v2-credit{bottom:auto;top:clamp(76px,11vh,110px);left:var(--gut);right:var(--gut);font-size:11px}
 }
+/* la tour parle d'elle-même : l'introduction reste dans la page éditoriale, pas par-dessus la scène */
+#da-experience.is-live .v2-asc__lead{display:none}
