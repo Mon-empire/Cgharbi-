@@ -157,6 +157,14 @@ export async function createAerial(ctx) {
         float f=clamp(dot(N,uSun)*2.2+.35,0.,1.);
         c=sunlight(c,sunLit(vW+N*1.2)*smoothstep(-.05,.15,dot(N,uSun)+.12),f);
         c*=1.-.3*steep*(1.-clamp(dot(N,uSun)*2.,0.,1.));
+        /* l'eau (la Seine et l'Yonne : niveau de la rivière, surface parfaitement plane) : reflet du ciel doré, scintillement du soleil bas */
+        float wat=(1.-smoothstep(-66.,-64.5,vW.y))*smoothstep(.992,.999,N.y)*(1.-smoothstep(.3,.42,dot(ph,vec3(.3,.55,.15))));   /* sombre comme l'eau sur la photo */
+        if(wat>.001){vec3 v=normalize(vW-uCam);vec3 r=reflect(v,vec3(0.,1.,0.));
+          float fr=.25+.75*pow(1.-max(dot(-v,vec3(0.,1.,0.)),0.),4.);
+          float n=sin(vW.x*.9+vW.z*.35)*sin(vW.z*1.1-vW.x*.2)*.5+.5;
+          vec3 sky=mix(uHaze*1.05,vec3(1.,.72,.42),pow(max(dot(r,uSun),0.),6.));
+          float gl=pow(max(dot(r,uSun),0.),220.)*(.6+1.4*n);
+          c=mix(c,mix(c*.55,sky,fr),wat*.8)+vec3(1.,.78,.45)*gl*wat*2.5;}
         gl_FragColor=vec4(haze(c,vW)*uShow,1.);}`;
     /* bâtiments BD TOPO : murs d'enduit clair (aucune matière inventée : ni pierre ni brique), toits photographiés ;
        une maille par dalle d'orthophoto (le toit lit la photo de sa dalle, qui déborde de 20 à 40 m) */
