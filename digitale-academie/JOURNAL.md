@@ -3,6 +3,24 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.1 (5 octobre 2026) : l'ouverture « on est l'oiseau »
+Seule l'ouverture (chapitre I) change ; le reste de la v14 est intact.
+- **Lignes jaunes de la façade retirées** (arêtes « photo → espace »). Le fil au sol de l'allée reste (version d'origine).
+- **Vue subjective d'un goéland** (l'oiseau de la Seine et de l'Yonne) : on descend du ciel de nuit au-dessus de la
+  vraie ville (maquette OSM + relief EU-DEM du chapitre VII, éclairage public atténué, faisceau court sur le pavillon
+  pour cap), on plonge dans la neige (fondu au noir, jamais de blanc), on ressort au ras de l'allée réelle (le
+  plan-séquence d'hiver → automne de la v14), on freine ailes hautes devant la porte, on se pose, les ailes se replient
+  **avant** que le slogan ne monte (lisibilité d'abord).
+- **Ailes** (`world/wings.js`) : texture photoréaliste d'une aile de goéland argenté (`assets/img/aile-goeland.png`,
+  image générée puis détourée — c'est un oiseau générique, pas une photo du lieu), posée sur deux pièces articulées
+  (bras, main) par aile ; plané, battements, freinage, repli ; léger flou de mise au point ; placement adapté aux
+  écrans en hauteur. Comme une caméra embarquée sur le dos : en plané les ailes restent au bord du cadre, elles y
+  entrent à chaque relèvement.
+- Neige qui file (traînées d'un pixel, bleutées), attachée à l'œil.
+- Chapitre I plus long (5,2 écrans au lieu de 3,4) : 43 % pour le vol, le reste garde les durées de la v14.
+- Affiches de démarrage refaites (la première image est maintenant la ville de nuit).
+- Correctif moteur : pas de temps négatif impossible (`dt` borné à 0) — il faisait diverger la caméra sur mobile.
+
 ## Version 14 (4 octobre 2026) : « Director's cut », première passe
 
 ### P0 · le flash blanc (cause trouvée, corrigée)

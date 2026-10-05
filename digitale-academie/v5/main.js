@@ -241,6 +241,10 @@ async function start() {
   const { createPhotoRooms } = await import('./world/photorooms.js');
   const photoRooms = await createPhotoRooms(ctx);
   ctx.photoRooms = photoRooms;
+  /* on est l'oiseau : ses ailes et son dos, attachés à la caméra */
+  const { createWings, createStreaks } = await import('./world/wings.js');
+  const wings = createWings(ctx, await tex('aile-goeland.png')), streaks = createStreaks(ctx);
+  camera.add(wings.group, streaks.group); scene.add(camera);
   const renderMural = () => library.renderMural(renderer, scene, [pavilion.group, surville.group, real.group]);
 
   /* ---------- prologue : logo en particules qui se pose sur le vrai logo de la façade ---------- */
@@ -265,8 +269,33 @@ async function start() {
      change (bourrasque de neige → feuilles). Plus de voile blanc : c'était la cause du flash blanc au démarrage. */
   const APPROACH = new THREE.CatmullRomCurve3([VIEW.clone(), VIEW.clone().addScaledVector(real.forward, 5), VIEW2.clone().addScaledVector(real.forward2, -3.2), VIEW2.clone().addScaledVector(real.forward2, -1.2)], false, 'centripetal');
   const gust = p => ss(.2, .32, p) * (1 - ss(.42, .56, p));
+  /* ---------- l'ouverture : on est l'oiseau (un goéland de la Seine). On descend du ciel de nuit au-dessus de la ville
+     (la maquette de lumière, le faisceau sur le pavillon pour cap), on plonge dans la neige, et on ressort au ras
+     de l'allée réelle : le plan-séquence d'origine, qu'on vole jusqu'à se poser devant la porte ---------- */
+  const SKY = .43;                                              /* part du chapitre consacrée au vol au-dessus de la ville */
+  const heroV = p => clamp((p - SKY) / (1 - SKY), 0, 1);        /* progression du plan-séquence (le seuil d'origine) */
+  let skyPath = null;
+  const tv = new THREE.Vector3(), tw = new THREE.Vector3();
+  const skyCam = (k, m) => {
+    const F = ctx.flight, pav = F.pav;
+    if (!skyPath || skyPath.userData !== F.ready) {
+      /* en mètres réels autour du pavillon (x est, z sud) ; altitude en unités de maquette (25 m) au-dessus du pavillon */
+      const P = (x, y, z) => F.P(x, y, z).add(new THREE.Vector3(0, pav.y - F.P(0, 0, 0).y, 0));
+      skyPath = new THREE.CatmullRomCurve3([P(-1150, 32, 1750), P(-720, 25, 1050), P(-330, 18, 400), P(20, 11, -260), P(110, 7, -560)], false, 'centripetal');
+      skyPath.userData = F.ready;
+    }
+    const pos = skyPath.getPointAt(k);
+    /* le regard de l'oiseau : vers le pavillon, plongeant d'environ 45° tant qu'il est haut, puis droit sur sa cible */
+    const h = pos.y - pav.y, d = tv.set(pav.x - pos.x, 0, pav.z - pos.z), dist = d.length();
+    const look = tw.copy(pos).addScaledVector(d.normalize(), Math.min(dist, Math.max(6, h * 1.05))); look.y = pav.y;
+    pos.x += m.sx * 1.5; pos.y += m.sy * .8;
+    return { pos, look: look.clone(), cut: 'ciel', hard: true, fov: camera.aspect < 1 ? 64 : 52 };
+  };
   const heroScene = {
-    cam(p, m) {
+    cam(p0, m) {
+      /* le ciel : du haut de la nuit jusqu'à la plongée dans la neige */
+      if (p0 < SKY && ctx.flight) return skyCam(Math.pow(p0 / SKY, 1.3), m);   /* majestueux en haut, de plus en plus vite dans la plongée */
+      const p = heroV(p0);
       /* hiver : on entre de quelques pas dans la photo de 2019 ; une bourrasque de neige blanchit l'image (p ≈ .33) ;
          quand elle se dissipe, c'est l'automne, devant l'entrée (photo prise de là) ; puis le seuil */
       const b = eIO(ss(.6, .94, p));
@@ -274,32 +303,23 @@ async function start() {
       pos = APPROACH.getPoint(eIO(ss(.04, .58, p))).lerp(THRESHOLD, b);
       look = AHEAD.clone().lerp(AHEAD2, eIO(ss(.12, .52, p))).lerp(INSIDE, eIO(ss(.7, 1, p)));
       pos.x += m.sx * .3 * (1 - b); pos.y += m.sy * .12 * (1 - b);
+      /* l'oiseau sort de la neige un peu au-dessus de l'allée, la rase, puis se pose (léger appui à l'atterrissage) */
+      pos.y += .7 * (1 - eIO(ss(0, .3, p))) - .16 * ss(.56, .62, p) * (1 - ss(.62, .72, p));
       return { pos, look };
     }
   };
 
-  /* ---------- photo → espace : les arêtes des volumes recalés sur la photo s'allument en lumière jaune ----------
-     Ce sont les vraies lignes de la façade (les volumes ont été reconstruits depuis la photo) : elles se tracent depuis la porte,
-     prolongent l'architecture dans la profondeur que la photo ne montre pas, puis s'effacent quand on entre dans l'image. */
-  const archU = { uProg: { value: 0 }, uAlpha: { value: 0 }, uTime: { value: 0 } };
-  const arch = (() => {
-    const pos = [], dist = [], O = real.logo.clone().setY(0), a = new THREE.Vector3();
-    real.group.updateMatrixWorld(true);
-    real.group.traverse(o => {
-      if (!o.isMesh || o.geometry.type !== 'BoxGeometry' || o.parent !== real.group && o.parent !== real.entrance) return;
-      const prm = o.geometry.parameters; if (prm.width < .3 && prm.depth < .3) return;
-      const e = new THREE.EdgesGeometry(o.geometry), pa = e.attributes.position;
-      for (let i = 0; i < pa.count; i++) { a.fromBufferAttribute(pa, i).applyMatrix4(o.matrixWorld); pos.push(a.x, a.y, a.z); dist.push(a.distanceTo(O)); }
-    });
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('aD', new THREE.Float32BufferAttribute(dist, 1));
-    const l = new THREE.LineSegments(g, new THREE.ShaderMaterial({
-      uniforms: archU, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
-      vertexShader: 'attribute float aD;varying float vD;void main(){vD=aD;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader: `uniform float uProg,uAlpha,uTime;varying float vD;void main(){float lit=1.-smoothstep(uProg-1.5,uProg,vD);float front=exp(-pow((vD-uProg)*.9,2.));
-        gl_FragColor=vec4(vec3(1.,.78,.12)*(lit*.75+front*2.2)*uAlpha*(.9+.1*sin(uTime*3.-vD)),1.);}`
-    }));
-    l.frustumCulled = false; l.renderOrder = 5; scene.add(l); return l;
-  })();
+  /* les ailes au fil du vol : plané et battements dans le ciel, ailes à demi repliées pour la plongée,
+     battements pour se rétablir au-dessus de l'allée, freinage cabré devant la porte, puis repli (elles sortent du champ) */
+  const beats = (k, a, b) => ss(a, a + .03, k) * (1 - ss(b - .03, b, k));
+  const wingState = p0 => {
+    if (p0 < SKY) {
+      const k = p0 / SKY, dive = ss(.58, .74, k);
+      return { flap: (.7 * Math.max(beats(k, 0, .16), beats(k, .3, .44)) + .3) * (1 - dive), freq: 2.1, gust: .25 + .6 * dive, fold: .55 * dive, bank: bank * 1.5 };
+    }
+    const p = heroV(p0), flare = ss(.4, .56, p), fold = ss(.56, .66, p);   /* posé et ailes repliées avant que le slogan ne monte */
+    return { flap: .7 * Math.max(beats(p, 0, .14), beats(p, .3, .38)) + .1 + .45 * flare * (1 - fold), freq: 2.2 + .9 * flare, gust: .3 * (1 - flare), flare, fold: Math.max(fold, p0 >= 1 ? 1 : 0), bank: bank * 1.5 };
+  };
 
   /* ---------- l'air du lieu : givre d'hiver qui devient feuilles d'automne en approchant ---------- */
   const AN = mobile ? 900 : 2600;
@@ -377,7 +397,7 @@ async function start() {
     measure(); if (chapters[0].h !== undefined) geom();
     const w = innerWidth, h = Math.max(1, innerHeight - TOP);
     renderer.setSize(w, h, false); composer.setSize(w, h); bloom.setSize(w, h);
-    camera.aspect = w / h; camera.fov = w / h < 1 ? 60 : 46; camera.updateProjectionMatrix();
+    camera.aspect = w / h; camera.fov = w / h < 1 ? 60 : 46; camera.updateProjectionMatrix(); wings.fit(camera.aspect);
   };
   resize(); addEventListener('resize', resize);
 
@@ -393,13 +413,13 @@ async function start() {
   const BL = .18;   /* part de chaque chapitre consacrée au raccord de caméra avec le précédent */
   const DUSK = { hero: .45, lieu: .45, campus: .1, asc: .2, walk: .3, human: .4, terr: .65, finale: 1 };
   window.__v2 = { get state() { return { current, level, cam: camera.position.toArray().map(v => +v.toFixed(1)), p: Object.fromEntries(chapters.map(c => [c.id, +c.p.toFixed(3)])) }; } };
-  window.__v2.scenes = SC; window.__v2.real = real; window.__v2.camera = camera; window.__v2.flock = flock;
+  window.__v2.scenes = SC; window.__v2.flight = ctx.flight; window.__v2.real = real; window.__v2.camera = camera; window.__v2.flock = flock;
   let last = performance.now(), virt = 0;
   window.__v2.settle = (n = 60) => { for (let i = 0; i < n; i++) { virt += 16.7; tick(performance.now() + virt); } };
   function frame(now) { requestAnimationFrame(frame); tick(now + virt); }
 
   function tick(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const dt = clamp((now - last) / 1000, 0, .05); last = Math.max(last, now);   /* jamais de pas négatif (horloges rAF / performance.now décalées) */
     const t = now / 1000;
     if (lenis) lenis.raf(now);
     const vh = innerHeight - TOP, sy = scrollY;
@@ -438,17 +458,14 @@ async function start() {
 
     /* ----- prologue ----- */
     {
-      const p = C.hero.p;
+      const pRaw = C.hero.p, p = heroV(pRaw), sky = center === 'hero' && pRaw < SKY;
       const intro = window.__v2.introAt != null ? window.__v2.introAt : introT0 ? (now - introT0) / 1000 : 0;
       /* dehors / dedans : la caméra a-t-elle passé le seuil ? (et non une part du chapitre : on ne voit jamais la photo de dos) */
       const pastDoor = camera.position.z < pavilion.door.z - .15;
       const outside = ['hero', 'finale'].includes(center) || (center === 'lieu' && !pastDoor);
-      /* photo → espace : les lignes de l'architecture se tracent à l'aube, puis s'effacent quand la caméra entre dans l'image */
-      archU.uTime.value = t; archU.uProg.value = ss(.05, .26, p) * 40; archU.uAlpha.value = center === 'hero' ? ss(.04, .08, p) * (1 - ss(.24, .36, p)) * .9 : 0;
-      arch.visible = archU.uAlpha.value > .002;
       /* le fil de lumière court sur l'allée jusqu'à la porte */
       filU.uTime.value = t; filU.uProg.value = center === 'finale' ? 1 : center === 'hero' ? ss(.04, .62, p) : 1;
-      filLine.visible = outside && camera.position.distanceTo(VIEW2) > 5;
+      filLine.visible = outside && !sky && camera.position.distanceTo(VIEW2) > 5;
       /* voiles : bourrasque de neige (blanc froid) à l'ouverture ; plongée dans le faisceau doré entre la maquette et le final */
       const dive = center === 'terr' ? ss(.86, .99, pc) : center === 'finale' ? 1 - ss(.04, .17, pc) : 0;
       fx.uniforms.uWhite.value = center === 'hero' ? 0 : dive * .92;
@@ -458,9 +475,16 @@ async function start() {
       const inside = (center === 'lieu' && pastDoor) || ['campus', 'asc', 'walk', 'human'].includes(center);
       /* chaque monde n'existe que là où on le voit : la façade réelle dehors, le pavillon modélisé dans la visite, la maquette au territoire */
       const inPav = center === 'lieu' || center === 'campus' || (center === 'asc' && pc < BL);
-      real.group.visible = !inside && center !== 'terr';
+      real.group.visible = !inside && center !== 'terr' && !sky;
       pavilion.exterior.visible = inPav; pavilion.interior.visible = inPav || (center === 'hero' && p > .7);
       if (SC.terr) SC.terr.group.visible = C.terr.vis || (center === 'finale' && pc < BL);
+      /* le ciel de l'ouverture : la ville entière en contrebas, le faisceau sur le pavillon s'éteint dans la plongée */
+      const sk = pRaw / SKY;
+      if (sky && ctx.flight) ctx.flight.aerial(true, t, 1 - ss(.78, .93, sk));
+      /* plongée dans la neige : la nuit se referme (bleu nuit, jamais de blanc), on ressort au ras de l'allée */
+      if (center === 'hero') fx.uniforms.uBlack.value = sky ? ss(.66, .9, sk) : 1 - ss(0, .05, p);
+      wings.light(sky ? .12 : lerp(.14, .5, ss(.25, .55, p)));   /* lune, puis jour d'automne devant la porte */
+      streaks.update(dt, center === 'hero' ? (sky ? .22 + .4 * ss(.5, .85, sk) : .5 * (1 - ss(0, .2, p))) : 0, center === 'hero' ? (sky ? 9 + 16 * ss(.5, .9, sk) : 8 * (1 - ss(0, .3, p)) + 2) : 0);
       real.update(camera.position);
       /* heure : matin d'hiver de la photo, puis lumière dorée de l'aube au final */
       /* ouverture : nuit de neige, le pavillon allumé ; le jour se lève quand on avance. Final : l'heure bleue, tout se rallume */
@@ -478,8 +502,8 @@ async function start() {
       const seasonK = center === 'hero' ? ss(.27, .5, p) : near;
       AU.uGust.value = center === 'hero' ? gust(p) : 0;
       real.season(outside ? seasonK : 1);
-      AU.uTime.value = t; AU.uSeason.value = seasonK; AU.uAmt.value = outside ? 1 : 0; air.visible = outside;
-      pool.material.uniforms.uI.value = openK * (outside ? 1 : 0);
+      AU.uTime.value = t; AU.uSeason.value = seasonK; AU.uAmt.value = outside ? 1 : 0; air.visible = outside && !sky;
+      pool.material.uniforms.uI.value = openK * (outside && !sky ? 1 : 0);
       /* le faisceau se voit de loin ; de près, la caméra le traverserait (voile laiteux sur toute l'image) : il s'efface */
       shaft.material.uniforms.uI.value = openK * (outside ? 1 : 0) * ss(1.6, 4, camera.position.distanceTo(shaft.position));
       if (openK > .3 && !doorSaid) { doorSaid = true; cue('coupe'); } if (openK < .1) doorSaid = false;
@@ -490,7 +514,7 @@ async function start() {
       LU.uOrigin.value.copy(LOGO_HOME).lerp(realLogo, land);
       LU.uScale.value = lerp(.46, realScale, land);
       LU.uFade.value = (1 - ss(.27, .32, p)) * (center === 'hero' ? 1 : 0);   /* posé, il s'efface : le vrai logo réapparaît */
-      logoPts.visible = center === 'hero';
+      logoPts.visible = center === 'hero' && !sky;
       if (land > .98 && !logoLanded) { logoLanded = true; cue('logo'); } if (land < .5) logoLanded = false;
       /* derrière la porte : le pavillon est dans la pénombre ; la lumière chaude, c'est la nuée qui attend dans l'embrasure */
       const pre = center === 'hero' ? ss(.62, .84, p) : 0;
@@ -507,12 +531,12 @@ async function start() {
       const out = 1 - ss(.97, 1, p);
       h1.parentNode.parentNode.style.opacity = out;
       heroEls.sub.style.opacity = ss(.88, .95, p) * out;
-      const kIn = eOut((intro - 2.3) / 1.4), kOut = ss(.02, .12, p);
+      const kIn = eOut((intro - 2.3) / 1.4), kOut = ss(.02, .12, pRaw);
       heroEls.kicker.style.opacity = kIn * (1 - kOut);
       C.hero.stage.style.setProperty('--scrim', (kIn * (1 - kOut) + ss(.66, .8, p) * out).toFixed(3));
       heroEls.kicker.style.transform = `translate3d(0,${((1 - kIn) * 14 - kOut * 30).toFixed(1)}px,0)`;
       heroEls.kicker.style.letterSpacing = `${(.62 - .2 * kIn).toFixed(3)}em`;
-      heroEls.hint.style.opacity = eOut((intro - 3.6) / 1) * (1 - ss(.02, .1, p));
+      heroEls.hint.style.opacity = eOut((intro - 3.6) / 1) * (1 - ss(.02, .1, pRaw));
     }
 
     /* ----- chapitres ----- */
@@ -553,7 +577,7 @@ async function start() {
     fx.uniforms.uCA.value = .0007 + Math.min(.0016, speed * .0001);
     /* focale : celle de la photo d'hiver au départ (aucun bord visible), puis l'œil normal */
     const baseFov = camera.aspect < 1 ? 60 : 46;
-    const tf = tgt.fov && !(ci > 0 && c.p < BL) ? tgt.fov : center === 'hero' ? lerp(fitFov(camera.aspect), baseFov, eIO(ss(.08, .5, C.hero.p))) : baseFov;
+    const tf = tgt.fov && !(ci > 0 && c.p < BL) ? tgt.fov : center === 'hero' ? lerp(fitFov(camera.aspect), baseFov, eIO(ss(.08, .5, heroV(C.hero.p)))) : baseFov;
     if (Math.abs(camera.fov - tf) > .01) { camera.fov = tf; camera.updateProjectionMatrix(); }
 
     const navId = { hero: 'da-accueil', lieu: 'da-campus', campus: 'da-campus', asc: 'da-formations', walk: 'da-parcours', human: 'da-accompagnement', terr: 'da-contact', finale: 'da-contact' }[center];
@@ -567,6 +591,7 @@ async function start() {
         if (fps < 40 && probe.drops < 2 && QL.indexOf(level) > 0) { probe.drops++; level = QL[QL.indexOf(level) - 1]; renderer.setPixelRatio(Math.min(devicePixelRatio, QCFG[level].dpr)); composer.setPixelRatio(renderer.getPixelRatio()); resize(); }
       }
     }
+    wings.update(t, dt, window.__wingState || wingState(center === 'hero' ? C.hero.p : 1));
     composer.render(dt);
   }
   /* démarrage continu : shaders compilés et textures envoyées avant la première image visible ;

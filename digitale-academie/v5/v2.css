@@ -193,7 +193,7 @@
 #da-experience .v2-status{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:5;margin:0;padding:10px 18px;border-radius:999px;background:rgba(4,8,13,.85);color:var(--soft);font-size:13px;letter-spacing:.04em;box-shadow:inset 0 0 0 1px var(--rule)}
 
 /* ================= mode vivant ================= */
-#da-experience.is-live .v2-hero{height:calc(var(--vh) * 3.4)}
+#da-experience.is-live .v2-hero{height:calc(var(--vh) * 5.2)}
 #da-experience.is-live .v2-asc{height:calc(var(--vh) * 4.6)}
 #da-experience.is-live .v2-lieu{height:calc(var(--vh) * 2)}
 #da-experience.is-live .v2-stage{position:absolute;left:0;top:0;width:100%;height:calc(var(--vh) - var(--top));padding:0;will-change:transform}
