@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency: { group: data-push, cancel-in-progress: false }
 jobs:
   ign:
     runs-on: ubuntu-latest
@@ -26,4 +27,4 @@ jobs:
           git config user.name "ign-data-bot"; git config user.email "ign-data-bot@users.noreply.github.com"
           git add digitale-academie/build/ign/out digitale-academie/v5/assets || true
           git commit -m "Données IGN : résultats du workflow [skip ci]" || echo "rien à commiter"
-          git push
+          for k in 1 2 3; do git pull --rebase && git push && break; sleep 5; done

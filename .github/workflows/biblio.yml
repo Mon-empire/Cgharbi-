@@ -1,0 +1,26 @@
+# Bibliothèque : photographies libres de la George Peabody Library (Wikimedia Commons) pour l'expérience.
+name: Bibliothèque (Wikimedia)
+on:
+  push:
+    branches: [claude/digitale-academie-refonte-cphasb]
+    paths: ['digitale-academie/build/biblio/*.py']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: data-push, cancel-in-progress: false }
+jobs:
+  biblio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install numpy pillow
+      - run: python digitale-academie/build/biblio/fetch.py
+      - name: Repousser les résultats
+        run: |
+          git config user.name "data-bot"; git config user.email "data-bot@users.noreply.github.com"
+          git add digitale-academie/build/biblio/out digitale-academie/v5/assets || true
+          git commit -m "Bibliothèque : photos Wikimedia [skip ci]" || echo "rien à commiter"
+          for k in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
