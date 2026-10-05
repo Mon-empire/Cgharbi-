@@ -144,7 +144,8 @@ export async function createAerial(ctx) {
         }
         gl_FragColor=vec4(haze(c,vW)*uShow,1.);}`
   });
-  const blds = new THREE.Mesh(bg, bldMat); blds.frustumCulled = false; G.add(blds);
+  /* aucun volume modélisé à l'image : les bâtiments ne servent qu'à projeter leurs vraies ombres sur la photo */
+  const blds = new THREE.Mesh(bg, bldMat); blds.frustumCulled = false;
 
   /* carte d'ombre : caméra orthographique alignée sur le soleil, ajustée à la zone survolée (relief et bâtiments en mètres) */
   {
@@ -213,10 +214,10 @@ export async function createAerial(ctx) {
     V(-260, 330, 1180),    /* la vieille ville, la Seine */
     V(230, 245, 760),      /* le confluent de la Seine et de l'Yonne */
     V(330, 190, 260),      /* on remonte le coteau boisé de Surville */
-    V(210, 140, -230),     /* on passe le pavillon, on vire */
-    V(-60, 85, -330),      /* au nord, face au sud : la cour du pavillon en ligne de mire */
-    V(-6, 40, -125),
-    V(0, 22, -55)          /* l'oiseau pique vers la cour */
+    V(230, 185, -200),     /* on passe le pavillon, on vire */
+    V(-40, 165, -290),     /* au nord, face au sud : la cour du pavillon en ligne de mire */
+    V(-10, 140, -140),
+    V(0, 105, -45)         /* au-dessus du pavillon, regard plongeant : la vraie photo à 0,32 m, puis le piqué */
   ], false, 'centripetal');
   const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
   const world = v => G.localToWorld(v);
@@ -232,7 +233,7 @@ export async function createAerial(ctx) {
       const h = p.y - height(p.x, p.z);
       /* l'oiseau regarde devant lui et vers le bas (plus il est haut, plus il plonge le regard), puis fixe la cour */
       tmp.copy(ahead).sub(p); tmp.y = 0; tmp.normalize();
-      const look = p.clone().addScaledVector(tmp, Math.max(40, h * 1.2)); look.y = height(look.x, look.z);
+      const look = p.clone().addScaledVector(tmp, Math.max(60, h * 1.2)); look.y = height(look.x, look.z);
       look.lerp(V(0, 2, 6), ss(.66, .86, k));   /* le pavillon, au centre de l'image, bien avant la plongée */
       return { pos: world(p.clone()), look: world(look), h };
     },

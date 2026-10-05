@@ -95,6 +95,8 @@ export async function createRealFacade(ctx, { door }) {
     uExpo: { value: 1 }, uTint: { value: new THREE.Color(1, 1, 1) }, uSat: { value: 1 }, uFade: { value: 1 }, uNight: { value: 0 },
     /* seconde photo (2023, prise devant l'entrée) : nette de près, fondue selon la proximité */
     uMap2: { value: null }, uPV2: { value: new THREE.Matrix4() }, uProj2: { value: new THREE.Vector3() }, uMix2: { value: 0 },
+    /* la même photo 2023, porte ouverte (retouche photographique, même cadrage) : l'ouverture de la porte est une photo, pas un modèle */
+    uMap3: { value: null }, uOpen: { value: 0 },
     /* vitrages relevés à la main (pixels : photo d'hiver 2000×1334, photo 2023 1800×1200) et têtes des lampadaires */
     uLights: { value: 0 },
     uWin1: { value: [[220, 628, 355, 768], [475, 626, 613, 766], [668, 632, 690, 758], [700, 636, 716, 758], [762, 645, 870, 752], [945, 637, 1043, 752], [1185, 597, 1347, 766], [1485, 597, 1560, 766], [1082, 640, 1110, 758]].map(r => new THREE.Vector4(...r)) },
@@ -105,7 +107,7 @@ export async function createRealFacade(ctx, { door }) {
   const projMat = (fallback, minFace = .02) => new THREE.ShaderMaterial({
     uniforms: { ...U, uFall: { value: new THREE.Color(fallback) }, uMinFace: { value: minFace } },
     vertexShader: `varying vec3 vW;varying vec3 vN;void main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;vN=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*w;}`,
-    fragmentShader: `uniform sampler2D uMap;uniform mat4 uPV;uniform vec3 uProj,uTint,uFall;uniform float uExpo,uSat,uFade,uNight,uMinFace,uMix2;uniform sampler2D uMap2;uniform mat4 uPV2;uniform vec3 uProj2;varying vec3 vW;varying vec3 vN;
+    fragmentShader: `uniform sampler2D uMap;uniform mat4 uPV;uniform vec3 uProj,uTint,uFall;uniform float uExpo,uSat,uFade,uNight,uMinFace,uMix2;uniform sampler2D uMap2,uMap3;uniform float uOpen;uniform mat4 uPV2;uniform vec3 uProj2;varying vec3 vW;varying vec3 vN;
       uniform float uLights;uniform vec4 uWin1[9];uniform vec4 uWin2[11];uniform vec2 uLamp[3];
       float rectM(vec2 p,vec4 r){vec2 a=smoothstep(r.xy-2.,r.xy+2.,p)*(1.-smoothstep(r.zw-2.,r.zw+2.,p));return a.x*a.y;}
       /* ombre du projecteur : une surface cachée à l'appareil photo ne reçoit pas sa photo (plus de bornes fantômes au sol) */
@@ -129,7 +131,8 @@ export async function createRealFacade(ctx, { door }) {
         float in2=step(0.,c2.w)*step(0.,uv2.x)*step(uv2.x,1.)*step(0.,uv2.y)*step(uv2.y,1.);
         vec2 e2=min(uv2,1.-uv2);float k2=in2*smoothstep(0.,.09,min(e2.x,e2.y))*smoothstep(uMinFace,uMinFace+.16,f2)*uMix2*uFade;
         float s2=seen(uD2,uv2,c2.z/c2.w);
-        vec3 ph2=mix((texture2D(uMap2,uv2+vec2(.032,0.)).rgb+texture2D(uMap2,uv2-vec2(.032,0.)).rgb)*.5,texture2D(uMap2,uv2).rgb,s2);float l2=dot(ph2,vec3(.299,.587,.114));ph2=mix(vec3(l2),ph2,uSat)*uTint*uExpo;
+        vec3 ph2=mix((texture2D(uMap2,uv2+vec2(.032,0.)).rgb+texture2D(uMap2,uv2-vec2(.032,0.)).rgb)*.5,texture2D(uMap2,uv2).rgb,s2);
+        if(uOpen>.001)ph2=mix(ph2,texture2D(uMap3,uv2).rgb,uOpen*s2);float l2=dot(ph2,vec3(.299,.587,.114));ph2=mix(vec3(l2),ph2,uSat)*uTint*uExpo;
         col=mix(col,ph2,k2);
         col=mix(col,col*vec3(.32,.38,.55),uNight);
         /* la nuit, le pavillon s'allume : vitrages mesurés sur chaque photo, lampadaires de la photo d'hiver */
@@ -203,7 +206,8 @@ export async function createRealFacade(ctx, { door }) {
   const LOGO = P(atZ(905, 645, zE)).add(new THREE.Vector3(0, 0, .05)), SIGN = P(atZ(995, 605, zE));
   const PATH = { x: P(onGround(957, 1334)).x, z0: P(onGround(957, 1334)).z, z1: P(onGround(957, 790)).z };
   /* seconde photo : même translation que le reste, puis matrices du projecteur */
-  const tex2 = await ctx.tex('facade-2023.jpg');
+  const [tex2, tex3] = await Promise.all([ctx.tex('facade-2023.jpg'), ctx.tex('facade-2023-ouverte.jpg')]);
+  U.uMap3.value = tex3 || tex2;
   cam2.position.add(T); cam2.updateMatrixWorld();
   U.uMap2.value = tex2; U.uPV2.value.multiplyMatrices(cam2.projectionMatrix, cam2.matrixWorldInverse); U.uProj2.value.copy(cam2.position);
   const forward2 = new THREE.Vector3(0, 0, -1).applyQuaternion(cam2.quaternion);
@@ -238,7 +242,10 @@ export async function createRealFacade(ctx, { door }) {
     logo: LOGO, logoRadius: .4, sign: SIGN, path: PATH,
     planes: { zL: zL + T.z, zE: zE + T.z, zR: zR + T.z, hL, hE, hR },
     /* ouverture de la porte : 0 fermée (photo) → 1 ouverte (verre) */
-    open(k) { const e = k * k * (3 - 2 * k); leaves.forEach(l => { l.closed.visible = e < .02; l.open.visible = e >= .02; l.pivot.rotation.y = -l.dir * e * 1.7; }); },
+    /* la porte s'ouvre dans la photo elle-même (fondu vers la photo « porte ouverte ») : plus aucun vantail modélisé */
+    open(k) { U.uOpen.value = k * k * (3 - 2 * k); leaves.forEach(l => { l.open.visible = false; l.pivot.rotation.y = 0; }); },
+    /* l'embrasure : les vantaux (photo) ferment la baie tant qu'on est dehors ; on les retire pour passer la porte */
+    doorway(show) { leaves.forEach(l => { l.closed.visible = show; }); },
     /* étalonnage : heure du jour et éloignement de l'appareil (la photo s'efface quand on s'en écarte trop) */
     grade({ expo = 1, tint = [1, 1, 1], sat = 1, night = 0, lights = 0 } = {}) { U.uExpo.value = expo; U.uTint.value.setRGB(...tint); U.uSat.value = sat; U.uNight.value = night; U.uLights.value = lights; },
     update(camPos) { const d = camPos.distanceTo(pc.position); U.uFade.value = 1 - ctx.ss(18, 45, d); }

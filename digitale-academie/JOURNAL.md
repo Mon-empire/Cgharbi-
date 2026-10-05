@@ -3,6 +3,16 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.5 (5 octobre 2026) : plus de 3D sur le bâtiment à l'ouverture
+- Vol : les volumes OSM ne sont plus affichés (ils ne servent qu'à projeter leurs vraies ombres sur la photo IGN) ;
+  la fin du vol reste au-dessus du pavillon (105 m), regard plongeant sur la photo IGN à 0,32 m/pixel, puis le piqué.
+- Porte : plus de vantaux modélisés (verre et aluminium). La porte s'ouvre **dans la photo** : fondu vers
+  `assets/img/facade-2023-ouverte.jpg`, la photo 2023 de la Ville dont seule l'embrasure a été retouchée (portes
+  ouvertes, lumière chaude ; retouche générée par Gemini 3 Pro Image via ElevenLabs, recalée au pixel près par
+  SIFT + homographie, erreur 1,1 px, et incrustée avec un masque adouci : tout le reste est la photo d'origine).
+  **À valider par la Ville** (photo retouchée). Le pavillon modélisé n'est plus visible derrière la porte depuis dehors.
+- Reste en 3D : l'intérieur du chapitre II « Le lieu » et le début de la visite (accueil, salle informatique).
+
 ## Version 14.4 (5 octobre 2026) : l'heure dorée (brief « jeu AAA »)
 Brief demandé : rendu cinématique de jeu AAA, heure dorée, ombres longues et douces, poussière volumétrique, netteté.
 Appliqué à l'ouverture **sans rien inventer** (pas de pierres ni de briques : le pavillon et Surville sont modernes).

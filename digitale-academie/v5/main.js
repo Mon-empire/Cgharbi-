@@ -475,7 +475,7 @@ async function start() {
       /* chaque monde n'existe que là où on le voit : la façade réelle dehors, le pavillon modélisé dans la visite, la maquette au territoire */
       const inPav = center === 'lieu' || center === 'campus' || (center === 'asc' && pc < BL);
       real.group.visible = !inside && center !== 'terr' && !sky;
-      pavilion.exterior.visible = inPav; pavilion.interior.visible = inPav || (center === 'hero' && p > .7);
+      pavilion.exterior.visible = inPav; pavilion.interior.visible = inPav;
       if (SC.terr) SC.terr.group.visible = C.terr.vis || (center === 'finale' && pc < BL);
       /* le ciel de l'ouverture : la ville entière en contrebas, le faisceau sur le pavillon s'éteint dans la plongée */
       const sk = pRaw / SKY;
@@ -506,7 +506,7 @@ async function start() {
       dustMotes.update(t, center === 'hero' ? (sky ? .45 : .9 * (1 - ss(.9, 1, p))) : 0, sky ? aerial.sun : tmpD.copy(pavilion.door).sub(camera.position).setY(1.2).normalize());
       /* la porte s'ouvre sur la lumière chaude de l'intérieur ; au final elle se rouvre pour toi */
       const openK = center === 'hero' ? ss(.72, .9, p) : center === 'finale' ? ss(.35, .7, pc) : 1;
-      real.open(openK);
+      real.open(openK); real.doorway(center !== 'lieu');
       /* la saison suit la marche : hiver loin de la porte, automne devant elle */
       const near = 1 - ss(1.2, 6, camera.position.distanceTo(VIEW2));
       const seasonK = center === 'hero' ? ss(.27, .5, p) : near;
