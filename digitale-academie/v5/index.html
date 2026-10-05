@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digitale Académie · le seuil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;600;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="v2.css">
+<link rel="preload" as="image" href="assets/img/seuil-poster.jpg" media="(min-aspect-ratio: 4/5)">
+<link rel="preload" as="image" href="assets/img/seuil-poster-portrait.jpg" media="(max-aspect-ratio: 4/5)">
+<script>/* démonstration : animations forcées au premier passage (en production, la préférence du système est respectée) */try{if(!localStorage.getItem('da-motion'))localStorage.setItem('da-motion','on')}catch(e){}</script>
+<style>
+  /* simulation du portail municipal (hors bloc livré) */
+  body{margin:0;background:#EEF1F3;font-family:Arial,sans-serif}
+  .muni-head{position:fixed;inset:0 0 auto 0;height:80px;z-index:50;background:#fff;display:flex;align-items:center;gap:24px;padding:0 32px;box-shadow:0 1px 0 #dde3e8;color:#0B3B66;font-weight:700}
+  .muni-head span{font-weight:400;color:#5c6b77;font-size:14px}
+  .muni-intro{padding:90px 32px 10px;color:#3E4A54;font-size:13px}.muni-intro p{margin:0}
+  .muni-after{padding:48px 32px 120px;color:#3E4A54}
+</style>
+</head>
+<body>
+<header class="muni-head header js-fixed-element">Ville de Montereau-Fault-Yonne <span>En-tête et menu du portail municipal (inchangés)</span></header>
+<div class="muni-intro"><p>Accueil › Démarches › Formations &amp; Emploi › <strong>Digitale Académie</strong></p></div>
+
+<!-- version de relecture : les badges de statut sont visibles (data-da-recette) ; en production seules les entrées CONFIRMÉES sont publiées -->
+<div class="da-experience" id="da-experience" data-da-assets="assets/" data-da-vendor="https://cdn.jsdelivr.net/npm/" data-da-recette>
+  <!-- démarrage continu : si la 3D va tourner, la première image est déjà la vraie façade, étalonnée comme la première image 3D -->
+  <script>(function(R){try{var f=null;try{f=localStorage.getItem('da-motion')}catch(e){}var red=f==='off'||(f!=='on'&&matchMedia('(prefers-reduced-motion: reduce)').matches);if(red||!document.createElement('canvas').getContext('webgl2'))return;var A=R.getAttribute('data-da-assets')||'assets/';var h=document.querySelector('.header.js-fixed-element, .header-wrapper .js-fixed-element');if(h&&getComputedStyle(h).position==='fixed')R.style.setProperty('--top',Math.round(h.getBoundingClientRect().height)+'px');R.style.setProperty('--da-poster','url('+A+'img/seuil-poster.jpg)');R.style.setProperty('--da-poster-p','url('+A+'img/seuil-poster-portrait.jpg)');R.classList.add('is-live','is-booting');setTimeout(function(){if(!window.__v2)R.classList.remove('is-live','is-booting')},30000)}catch(e){}})(document.currentScript.parentNode)</script>
+
+  <nav class="v2-nav" aria-label="Navigation de la Digitale Académie">
+    <ol>
+      <li><a href="#da-accueil">Accueil</a></li>
+      <li><a href="#da-campus">Campus</a></li>
+      <li><a href="#da-formations">Formations</a></li>
+      <li><a href="#da-parcours">Parcours</a></li>
+      <li><a href="#da-accompagnement">Accompagnement</a></li>
+      <li><a href="#da-contact">Contact</a></li>
+    </ol>
+  </nav>
+
+  <div class="v2-ctrl" role="group" aria-label="Réglages de l'expérience">
+    <button type="button" class="v2-ctrl__btn da-nav__btn--sound" data-da-action="sound" aria-pressed="true" hidden>Son</button>
+    <button type="button" class="v2-ctrl__btn" data-da-action="motion" aria-pressed="false">Animations réduites</button>
+  </div>
+
+  <!-- 1. ACCUEIL -->
+  <section class="v2-ch v2-hero" id="da-accueil" data-ch="hero" aria-labelledby="v2-hero-t">
+    <div class="v2-stage">
+      <p class="v2-kicker"><span>Digitale Académie</span><span>Montereau-Fault-Yonne · Surville</span></p>
+      <h2 class="v2-hero__t" id="v2-hero-t">
+        <span class="v2-hero__l1">Si tu ne vas pas à l’Université,</span>
+        <span class="v2-hero__l2">l’Université vient&nbsp;à&nbsp;toi.</span>
+      </h2>
+      <p class="v2-hero__sub">Service municipal d’aide à la réussite des études supérieures diplômantes et des formations certifiantes.</p>
+      <p class="v2-scroll" aria-hidden="true"><span></span>Défiler</p>
+      <p class="v2-hero__src">Vue aérienne : bâtiments BD TOPO, relief RGE ALTI et MNS LiDAR, orthophotographies IGN (Licence ouverte Etalab 2.0) · lointains AWS Terrain Tiles (SRTM, EU-DEM) · noms des lieux © contributeurs OpenStreetMap (ODbL)</p>
+    </div>
+  </section>
+
+  <!-- 2. CAMPUS : on passe la porte, puis la visite du lieu réel -->
+  <section class="v2-ch v2-lieu" id="da-campus" data-ch="lieu" aria-labelledby="v2-lieu-t">
+    <div class="v2-stage">
+      <p class="v2-label">Le campus</p>
+      <h2 class="v2-lieu__t" id="v2-lieu-t">Surville, ville haute.<br><em>Un lieu pour étudier.</em> <span class="v2-badge" title="Phrase éditoriale proposée">à valider</span></h2>
+      <ul class="v2-facts">
+        <li><strong>3 000<sup>+</sup></strong><span>formations post-bac à distance, du BTS au Master</span></li>
+        <li><strong>600<small> m²</small></strong><span>connectés à la fibre</span></li>
+        <li><strong>2</strong><span>coachs sur place</span></li>
+      </ul>
+      <p class="v2-credit v2-lieu__credit">Accueil : image générée d’après les photos des vraies salles <span class="v2-badge" title="Image de synthèse : à remplacer par une photo de l’accueil">image générée · à valider</span></p>
+      <p class="v2-lieu__spaces">1 accueil · 5 salles équipées d’ordinateurs et de casques · 1 salle de réunion · 1 coin cuisine <span class="v2-badge" title="Source : page officielle · à relire">à valider</span></p>
+    </div>
+  </section>
+
+  <section class="v2-ch v2-campus" data-ch="campus" aria-label="Visite des salles">
+    <div class="v2-stage">
+      <ol class="v2-rooms">
+        <li class="v2-room"><p class="v2-room__n">Salle 01</p><h3>Accueil et cafétéria <span class="v2-badge" title="Source : propos du maire rapportés par Weka · à relire">à valider</span></h3><p>Un espace d’accueil, une cafétéria et un coin cuisine.</p></li>
+        <li class="v2-room"><p class="v2-room__n">Salle 02</p><h3>Salle informatique</h3><p>Ordinateurs et casques individuels dans chaque salle.</p></li>
+        <li class="v2-room"><p class="v2-room__n">Salle 03</p><h3>Frida Kahlo <span class="v2-badge" title="Nom de salle à confirmer">à valider</span></h3><p>Portrait peint sur fond jaune.</p></li>
+        <li class="v2-room"><p class="v2-room__n">Salle 04</p><h3>Nelson Mandela <span class="v2-badge" title="Nom de salle à confirmer">à valider</span></h3><p>Portrait peint sur fond vert.</p></li>
+        <li class="v2-room"><p class="v2-room__n">Salle 05</p><h3>Salle d’étude <span class="v2-badge" title="Source : propos du maire rapportés par Weka · à relire">à valider</span></h3><p>Des salles de travail à dimension humaine… et ce grand papier peint de bibliothèque.</p></li>
+      </ol>
+      <p class="v2-credit">Accueil : image générée d’après les photos des vraies salles <span class="v2-badge" title="Image de synthèse : à remplacer par une photo de l’accueil">image générée · à valider</span>. Salle informatique, salles Frida Kahlo, Nelson Mandela et salle d’étude : photographies de la Ville. <span class="v2-badge" title="Salle informatique : étudiants reconnaissables ; salle d’étude : deux personnes de dos · autorisations de diffusion à confirmer">droit à l’image à valider</span></p>
+    </div>
+  </section>
+
+  <!-- 2. FORMATIONS -->
+  <section class="v2-ch v2-asc" id="da-formations" data-ch="asc" aria-labelledby="v2-asc-t">
+    <div class="v2-stage">
+      <header class="v2-asc__head">
+        <p class="v2-label">Les formations</p>
+        <h2 class="v2-asc__t" id="v2-asc-t">Du DAEU au Master,<br><em>un étage après l’autre.</em> <span class="v2-badge" title="Phrase éditoriale proposée">à valider</span></h2>
+        <p class="v2-asc__lead">Plus de 3 000 formations post-bac suivies à distance, du BTS au Master.</p>
+      </header>
+      <p class="v2-asc__level" aria-hidden="true">Accès</p>
+      <ol class="v2-steps">
+        <li class="v2-step" data-id="daeu" data-color="#F2E12B" data-lv="Accès"><button type="button" class="v2-step__btn"><span class="v2-step__n">01</span> DAEU</button>
+          <div class="v2-step__body"><p class="v2-step__lv">Accès au supérieur</p><p>Diplôme d’accès aux études universitaires. Il donne les mêmes droits que le baccalauréat pour poursuivre des études supérieures.</p></div></li>
+        <li class="v2-step" data-id="bts" data-color="#EE7623" data-lv="Bac+2"><button type="button" class="v2-step__btn"><span class="v2-step__n">02</span> BTS</button>
+          <div class="v2-step__body"><p class="v2-step__lv">Bac+2</p><p>Brevet de technicien supérieur, diplôme national préparé en deux ans.</p></div></li>
+        <li class="v2-step" data-id="licence" data-color="#E3301E" data-lv="Bac+3"><button type="button" class="v2-step__btn"><span class="v2-step__n">03</span> Licence</button>
+          <div class="v2-step__body"><p class="v2-step__lv">Bac+3</p><p>Diplôme national de l’enseignement supérieur, délivré par une université.</p></div></li>
+        <li class="v2-step" data-id="bachelor" data-color="#22A397" data-lv="Bac+3"><button type="button" class="v2-step__btn"><span class="v2-step__n">04</span> Bachelor</button>
+          <div class="v2-step__body"><p class="v2-step__lv">Bac+3</p><p>Diplôme propre à un établissement. Sa reconnaissance dépend de chaque programme (titre RNCP, visa ou grade).</p></div></li>
+        <li class="v2-step" data-id="master" data-color="#3A86E0" data-lv="Bac+5"><button type="button" class="v2-step__btn"><span class="v2-step__n">05</span> Master</button>
+          <div class="v2-step__body"><p class="v2-step__lv">Bac+5</p><p>Diplôme national de l’enseignement supérieur, préparé en deux ans après la licence.</p></div></li>
+        <li class="v2-step" data-id="du" data-color="#D2464C" data-lv="DU"><button type="button" class="v2-step__btn"><span class="v2-step__n">06</span> DU</button>
+          <div class="v2-step__body"><p class="v2-step__lv">Durée variable</p><p>Diplôme d’université, propre à chaque établissement. Sa durée et son niveau varient.</p></div></li>
+      </ol>
+      <p class="v2-asc__note"><span class="v2-badge" title="Définitions générales à faire relire">à valider</span> Définitions générales, en attente de relecture par la Digitale Académie.</p>
+    </div>
+  </section>
+
+  <!-- 3. PARCOURS -->
+  <section class="v2-ch v2-walk" id="da-parcours" data-ch="walk" aria-labelledby="v2-walk-t">
+    <div class="v2-stage">
+      <header class="v2-walk__head">
+        <p class="v2-label">Le parcours</p>
+        <h2 class="v2-walk__t" id="v2-walk-t">Sept étapes,<br><em>jusqu’à la lumière.</em> <span class="v2-badge" title="Phrase éditoriale proposée">à valider</span></h2>
+      </header>
+      <p class="v2-walk__count" aria-hidden="true">01 / 07</p>
+      <ol class="v2-walk__steps">
+        <li class="v2-walk__step"><h3>S’orienter <span class="v2-badge" title="Source : brochure 2024 · à relire">à valider</span></h3><p>Prendre rendez-vous pour visiter les lieux et parler de ton projet d’études avec un conseiller pédagogique.</p></li>
+        <li class="v2-walk__step"><h3>Choisir</h3><p>Choisir parmi plus de 3 000 formations post-bac à distance, du BTS au Master, ou préparer le DAEU.</p></li>
+        <li class="v2-walk__step"><h3>S’inscrire <span class="v2-badge" title="Règle Parcoursup à préciser selon les formations">à valider</span></h3><p>L’équipe aide aux inscriptions en ligne.</p></li>
+        <li class="v2-walk__step"><h3>Étudier</h3><p>Travailler dans 600 m² connectés à la fibre, en ville haute.</p></li>
+        <li class="v2-walk__step"><h3>Être accompagné</h3><p>Deux coachs suivent ton travail et animent des ateliers.</p></li>
+        <li class="v2-walk__step"><h3>Avancer <span class="v2-badge v2-badge--old" title="Liste d’ateliers à actualiser">à actualiser</span></h3><p>Des ateliers pour tenir le rythme : méthodologie, préparation aux examens, anglais.</p></li>
+        <li class="v2-walk__step"><h3>Préparer la suite <span class="v2-badge" title="Source : actualité 2026 · à relire">à valider</span></h3><p>Les coachs aident aussi à trouver un stage.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4. ACCOMPAGNEMENT + ATELIERS -->
+  <section class="v2-ch v2-human" id="da-accompagnement" data-ch="human" aria-labelledby="v2-human-t">
+    <div class="v2-stage">
+      <!-- rupture : silence, une vraie photo, la lumière douce. Le titre passe derrière l'étudiante du premier plan ;
+           deux fils de lumière (jaune, cyan : les deux coachs) traversent la salle. Photo à retirer en production tant que
+           le droit à l'image n'est pas confirmé (data-da-droits) : la section fonctionne sans elle. -->
+      <figure class="v2-human__photo" data-da-droits="A_VALIDER">
+        <div class="v2-human__frame">
+          <img class="v2-human__bg" src="assets/img/etudiants-1.jpg" alt="Étudiantes et étudiants au travail dans une salle de la Digitale Académie" width="1800" height="1200" loading="lazy" decoding="async">
+          <svg class="v2-human__threads" viewBox="0 0 1800 1200" aria-hidden="true" focusable="false">
+            <path class="v2-thread v2-thread--y" d="M-60 1000 C 380 880, 640 540, 1030 610 S 1500 770, 1880 360"/>
+            <path class="v2-thread v2-thread--c" d="M-60 620 C 320 540, 720 840, 1090 720 S 1560 430, 1880 560"/>
+            <circle class="v2-thread__head v2-thread__head--y" r="9"/><circle class="v2-thread__head v2-thread__head--c" r="9"/>
+          </svg>
+          <img class="v2-human__fg" src="assets/img/etudiants-1.jpg" alt="" aria-hidden="true" width="1800" height="1200" loading="lazy" decoding="async" style="clip-path:polygon(52.78% 100.00%,53.06% 86.67%,55.00% 75.00%,58.33% 66.67%,62.22% 62.08%,66.11% 59.58%,68.61% 56.67%,69.17% 50.00%,70.28% 43.33%,72.22% 37.50%,74.72% 32.92%,76.11% 29.58%,80.00% 29.17%,83.33% 33.33%,86.39% 36.67%,88.89% 41.67%,90.28% 48.33%,91.11% 56.67%,90.83% 64.17%,89.44% 70.83%,86.67% 73.33%,84.44% 75.00%,85.00% 85.00%,84.17% 100.00%)">
+        </div>
+        <figcaption class="v2-credit">Photo : Ville de Montereau-Fault-Yonne <span class="v2-badge" title="Personnes reconnaissables : autorisation de diffusion à confirmer">droit à l’image à valider</span></figcaption>
+      </figure>
+      <header class="v2-human__head">
+        <p class="v2-label">L’accompagnement</p>
+        <h2 class="v2-human__t" id="v2-human-t">Tu n’étudies<br><em>pas seul.</em></h2>
+      </header>
+      <dl class="v2-human__list">
+        <div><dt>Deux coachs</dt><dd>Un accompagnement personnalisé par deux coachs présents sur place.</dd></div>
+        <div><dt>Inscriptions</dt><dd>Aide aux inscriptions en ligne.</dd></div>
+        <div><dt>Ateliers et stages <span class="v2-badge" title="Source : actualité 2026 · à relire">à valider</span></dt><dd>Les coachs animent les ateliers et aident à la recherche de stage.</dd></div>
+        <div><dt>Conseiller pédagogique <span class="v2-badge" title="Source : brochure 2024 · à relire">à valider</span></dt><dd>Rendez-vous possible pour visiter et parler de ton projet d’études.</dd></div>
+      </dl>
+      <div class="v2-work">
+        <p class="v2-label">Les ateliers <span class="v2-badge v2-badge--old" title="Liste publiée sur la page, à actualiser">à actualiser</span></p>
+        <ul>
+          <li>Méthodologie</li><li>Posture professionnelle</li><li>Préparation aux examens</li><li>Anglais</li><li>Cafés-débats</li><li>Sport</li><li>Sophrologie</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CONTACT : le territoire -->
+  <section class="v2-ch v2-terr" id="da-contact" data-ch="terr" aria-labelledby="v2-terr-t">
+    <div class="v2-stage">
+      <header class="v2-terr__head">
+        <p class="v2-label">Nous trouver</p>
+        <h2 class="v2-terr__t" id="v2-terr-t">En ville haute,<br><em>à Surville.</em></h2>
+        <p class="v2-terr__lead">Montereau-Fault-Yonne est au confluent de la Seine et de l’Yonne.</p>
+        <p class="v2-terr__first"><strong>Campus connecté.</strong> C’est à la Digitale Académie que la ministre de l’Enseignement supérieur a lancé, le 3&nbsp;mai&nbsp;2019, les 13&nbsp;premiers Campus connectés de France. <span class="v2-badge" title="Source : Banque des Territoires, « Frédérique Vidal annonce les 13 premiers campus connectés » (2019). La formule « premier campus connecté de France » circule dans la presse : à confirmer par le ministère avant de l’employer.">source à relire</span></p>
+      </header>
+      <dl class="v2-terr__list">
+        <div><dt>Adresse</dt><dd>1 rue Honoré de Balzac, 77130 Montereau-Fault-Yonne</dd></div>
+        <div><dt>Horaires</dt><dd>Du lundi au jeudi de 8h30 à 17h30<br>Le vendredi de 8h30 à 17h</dd></div>
+        <div><dt>Téléphone</dt><dd><a href="tel:+33182340141">01 82 34 01 41</a></dd></div>
+        <div><dt>E-mail</dt><dd><a href="mailto:digitale-academie@ville-montereau77.fr">digitale-academie@ville-montereau77.fr</a></dd></div>
+        <div><dt>Itinéraire</dt><dd><a href="https://www.google.fr/maps/place/48.3969801,2.9569157" target="_blank" rel="noopener">Ouvrir dans Google Maps <span class="v2-sr">(nouvelle fenêtre)</span></a> · 48.3970° N, 2.9569° E</dd></div>
+        <div><dt>Université Pour Tous</dt><dd>Cours du soir et conférences, dans les mêmes locaux : <a href="mailto:contact.upt@ville-montereau77.fr">contact.upt@ville-montereau77.fr</a></dd></div>
+      </dl>
+      <p class="v2-terr__schema">Vue 3D : bâtiments BD TOPO, relief RGE ALTI et MNS LiDAR, orthophotographies IGN (Licence ouverte Etalab 2.0) · itinéraire et noms des lieux © contributeurs OpenStreetMap (ODbL)</p>
+    </div>
+  </section>
+
+  <!-- 7. FINALE -->
+  <section class="v2-ch v2-fin" data-ch="finale" aria-labelledby="v2-fin-t">
+    <div class="v2-stage">
+      <h2 class="v2-fin__t" id="v2-fin-t"><span>Ton parcours</span> <span>commence peut-être</span> <em>ici.</em> <span class="v2-badge" title="Phrase éditoriale proposée">à valider</span></h2>
+      <p class="v2-fin__cta">
+        <a class="v2-btn" href="tel:+33182340141">Appeler · 01 82 34 01 41</a>
+        <a class="v2-btn v2-btn--ghost" href="mailto:digitale-academie@ville-montereau77.fr">Écrire à la Digitale Académie</a>
+      </p>
+      <p class="v2-fin__slogan">Si tu ne vas pas à l’Université, l’Université vient à toi.</p>
+    </div>
+  </section>
+</div>
+
+<div class="muni-after">Blocs municipaux natifs (Publications, Contact, Élu, En images) puis pied de page du portail.</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>

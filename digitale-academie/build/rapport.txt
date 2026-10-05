@@ -1,0 +1,34 @@
+Rapport de génération 1.0.0 · 2026-10-02
+Version publique : seules les entrées CONFIRMEE sont incluses.
+
+A SIGNER [CONFIRMEE] coaches (validatedBy vide)
+A SIGNER [CONFIRMEE] daeu (validatedBy vide)
+A SIGNER [CONFIRMEE] mission (validatedBy vide)
+A SIGNER [CONFIRMEE] offer (validatedBy vide)
+A SIGNER [CONFIRMEE] surface (validatedBy vide)
+EXCLU    [A_ACTUALISER] ateliers
+EXCLU    [A_ACTUALISER] étape Avancer
+EXCLU    [A_VALIDER] accompagnement Ateliers et stages
+EXCLU    [A_VALIDER] accompagnement Conseiller pédagogique
+EXCLU    [A_VALIDER] audience
+EXCLU    [A_VALIDER] confluence
+EXCLU    [A_VALIDER] définition Bachelor
+EXCLU    [A_VALIDER] définition BTS
+EXCLU    [A_VALIDER] définition DAEU
+EXCLU    [A_VALIDER] définition DU
+EXCLU    [A_VALIDER] définition Licence
+EXCLU    [A_VALIDER] définition Master
+EXCLU    [A_VALIDER] domaines
+EXCLU    [A_VALIDER] espaces
+EXCLU    [A_VALIDER] étape Préparer la suite
+EXCLU    [A_VALIDER] étape S'inscrire
+EXCLU    [A_VALIDER] étape S'orienter
+EXCLU    [A_VALIDER] finale
+EXCLU    [A_VALIDER] manifesto
+EXCLU    [A_VALIDER] note DAEU
+EXCLU    [A_VALIDER] salle Ensemble
+EXCLU    [A_VALIDER] salle Frida Kahlo
+EXCLU    [A_VALIDER] salle Nelson Mandela
+EXCLU    [A_VALIDER] salle Postes individuels
+EXCLU    [droits A_VALIDER] photo etudiants-1.jpg
+EXCLU    [droits A_VALIDER] photo etudiants-2.jpg

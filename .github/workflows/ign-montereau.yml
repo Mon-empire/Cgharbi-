@@ -1,0 +1,34 @@
+# Données ouvertes IGN pour l'expérience Digitale Académie (Montereau-Fault-Yonne).
+# Lancé quand le script de sonde ou de préparation change sur la branche de travail ; repousse les résultats.
+name: Données IGN Montereau
+on:
+  push:
+    branches: [claude/digitale-academie-refonte-cphasb]
+    paths: ['digitale-academie/build/ign/*.py', '.github/workflows/ign-montereau.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: data-push, cancel-in-progress: false }
+jobs:
+  ign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install numpy pillow pyproj laspy[lazrs] scipy triangle shapely networkx pyfqmr
+      - run: |
+          if [ ! -f digitale-academie/build/ign/out/report.json ]; then python digitale-academie/build/ign/probe.py; fi
+      - run: python digitale-academie/build/ign/lieux.py
+      - run: |
+          if [ ! -f digitale-academie/v5/assets/ville/ville.json ]; then python digitale-academie/build/ign/ville3d.py && python digitale-academie/build/ign/bati_compact.py; fi
+      - run: python digitale-academie/build/ign/route.py
+      - name: Repousser les résultats
+        run: |
+          git config user.name "ign-data-bot"; git config user.email "ign-data-bot@users.noreply.github.com"
+          git add digitale-academie/build/ign/out digitale-academie/v5/assets || true
+          git commit -m "Données IGN : résultats du workflow [skip ci]" || echo "rien à commiter"
+          set +e
+          for k in 1 2 3 4 5 6; do git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep $((k * 7)); done
+          exit 1

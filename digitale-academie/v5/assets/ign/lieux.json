@@ -1,0 +1,857 @@
+[
+ {
+  "name": "Montereau-Fault-Yonne",
+  "kind": "place=town",
+  "x": -90.7,
+  "z": 1335.5,
+  "osm": "node/26692629",
+  "denom": "",
+  "wiki": "fr:Montereau-Fault-Yonne"
+ },
+ {
+  "name": "École maternelle Victor Hugo",
+  "kind": "amenity=school",
+  "x": -255.4,
+  "z": 1121.2,
+  "osm": "node/447509125",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Montereau",
+  "kind": "railway=station",
+  "x": -1055.7,
+  "z": 1950.7,
+  "osm": "node/562866213",
+  "denom": "",
+  "wiki": "fr:Gare de Montereau"
+ },
+ {
+  "name": "",
+  "kind": "historic=wayside_cross",
+  "x": 409.0,
+  "z": 570.4,
+  "osm": "node/2135164795",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Mairie Annexe",
+  "kind": "amenity=townhall",
+  "x": -149.0,
+  "z": 85.6,
+  "osm": "node/2481182616",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Lycée polyvalent André Malraux",
+  "kind": "amenity=school",
+  "x": 288.1,
+  "z": 179.7,
+  "osm": "node/2672255590",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Section d'enseignement professionnel du Lycée André Malraux",
+  "kind": "amenity=school",
+  "x": 207.4,
+  "z": 247.6,
+  "osm": "node/2672255613",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=memorial",
+  "x": -684.7,
+  "z": 963.8,
+  "osm": "node/3324847274",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Saint-Maurice",
+  "kind": "place=neighbourhood",
+  "x": 401.1,
+  "z": 985.9,
+  "osm": "node/4264297291",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Logis du Grand-Cerf",
+  "kind": "historic=house",
+  "x": -82.7,
+  "z": 1070.9,
+  "osm": "node/4264730291",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=house",
+  "x": -63.0,
+  "z": 1195.7,
+  "osm": "node/4264740790",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Ancien Château",
+  "kind": "historic=castle",
+  "x": 268.2,
+  "z": 1024.1,
+  "osm": "node/4264746389",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Maison de la Levrette",
+  "kind": "historic=house",
+  "x": -294.6,
+  "z": 958.5,
+  "osm": "node/4264746390",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle les Muriers",
+  "kind": "amenity=school",
+  "x": 2036.8,
+  "z": -207.0,
+  "osm": "node/4266849820",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Le Marais d'Air",
+  "kind": "place=neighbourhood",
+  "x": -1644.9,
+  "z": 2552.1,
+  "osm": "node/4271309890",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=house",
+  "x": 624.9,
+  "z": -41.3,
+  "osm": "node/4299629104",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Prison (ancienne)",
+  "kind": "historic=ruins",
+  "x": 255.7,
+  "z": 1000.2,
+  "osm": "node/4299629105",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Groupe de Quatre Pierres Levées",
+  "kind": "historic=stone",
+  "x": -1733.9,
+  "z": 443.7,
+  "osm": "node/4299644296",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Dalle commémorative de l'artillerie de la bataille de Montereau",
+  "kind": "historic=memorial",
+  "x": 276.5,
+  "z": 647.7,
+  "osm": "node/7731455942",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "tourism=viewpoint",
+  "x": 271.8,
+  "z": 651.4,
+  "osm": "node/7731455944",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=memorial",
+  "x": -399.7,
+  "z": 434.6,
+  "osm": "node/9674144348",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Collège André Malraux",
+  "kind": "amenity=school",
+  "x": 142.3,
+  "z": 449.0,
+  "osm": "node/12070285419",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Auto-école SUD 77",
+  "kind": "amenity=driving_school",
+  "x": -148.3,
+  "z": 1599.3,
+  "osm": "node/12091422169",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École Trait d'Union",
+  "kind": "amenity=school",
+  "x": -732.4,
+  "z": -96.5,
+  "osm": "node/13172097383",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Collège Trait d'Union",
+  "kind": "amenity=school",
+  "x": -743.4,
+  "z": -105.2,
+  "osm": "node/13172097384",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "SEGPA du collège Paul Éluard",
+  "kind": "amenity=school",
+  "x": 864.2,
+  "z": -366.8,
+  "osm": "node/13172097444",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=memorial",
+  "x": 708.6,
+  "z": 329.3,
+  "osm": "node/13172097452",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=memorial",
+  "x": 742.5,
+  "z": 141.0,
+  "osm": "node/13172097453",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "historic=memorial",
+  "x": -205.1,
+  "z": 1585.1,
+  "osm": "node/13172097462",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Section d'enseignement professionnel du Lycée Flora Tristan",
+  "kind": "amenity=school",
+  "x": -934.8,
+  "z": 2146.3,
+  "osm": "node/13172097463",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Pont Georges Pompidou",
+  "kind": "bridge=yes",
+  "x": 108.8,
+  "z": 1854.4,
+  "osm": "way/28900546",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": 2627.3,
+  "z": 465.3,
+  "osm": "way/29377035",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Pont de Seine",
+  "kind": "bridge=yes",
+  "x": 209.6,
+  "z": 894.3,
+  "osm": "way/32538638",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Pont Saint-Martin",
+  "kind": "bridge=yes",
+  "x": 749.7,
+  "z": 591.3,
+  "osm": "way/36944585",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Route de Fossard",
+  "kind": "bridge=yes",
+  "x": 70.5,
+  "z": 2602.6,
+  "osm": "way/37635974",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc des Noues",
+  "kind": "leisure=park",
+  "x": -59.8,
+  "z": 1832.3,
+  "osm": "way/37962656",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": -515.9,
+  "z": 897.0,
+  "osm": "way/39671300",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "L'Yonne",
+  "kind": "waterway=river",
+  "x": 758.0,
+  "z": 2092.0,
+  "osm": "way/44002788",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Pont des Grèves",
+  "kind": "bridge=yes",
+  "x": -296.6,
+  "z": 2326.1,
+  "osm": "way/44739316",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc de la Sauvagerie",
+  "kind": "leisure=park",
+  "x": -1949.4,
+  "z": 2613.7,
+  "osm": "way/96832590",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": -1309.3,
+  "z": 962.6,
+  "osm": "way/109214092",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "bridge=yes",
+  "x": 876.7,
+  "z": 896.5,
+  "osm": "way/151204919",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": -2802.6,
+  "z": 2180.2,
+  "osm": "way/240309890",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": -3182.6,
+  "z": 2490.1,
+  "osm": "way/240309900",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École primaire Clos Dion",
+  "kind": "amenity=school",
+  "x": -187.8,
+  "z": 148.3,
+  "osm": "way/240377107",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle Clos Dion",
+  "kind": "amenity=school",
+  "x": -170.9,
+  "z": 184.3,
+  "osm": "way/240377245",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Mosquée Turque",
+  "kind": "amenity=place_of_worship",
+  "x": -210.4,
+  "z": -155.2,
+  "osm": "way/240377813",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle Pierre et Marie Curie",
+  "kind": "amenity=school",
+  "x": -169.4,
+  "z": -268.1,
+  "osm": "way/240378246",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc de la Gramine",
+  "kind": "leisure=park",
+  "x": 100.8,
+  "z": -0.8,
+  "osm": "way/240390450",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École élémentaire Claude Sigonneau",
+  "kind": "amenity=school",
+  "x": 133.6,
+  "z": 73.2,
+  "osm": "way/240390452",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "man_made=water_tower",
+  "x": -9.5,
+  "z": 109.5,
+  "osm": "way/240390454",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Hôtel de Ville",
+  "kind": "amenity=townhall",
+  "x": -81.3,
+  "z": 1345.3,
+  "osm": "way/242638576",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École de la Poterie",
+  "kind": "amenity=school",
+  "x": -140.9,
+  "z": 990.3,
+  "osm": "way/242640707",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc des Amendes",
+  "kind": "leisure=park",
+  "x": -450.7,
+  "z": 1328.9,
+  "osm": "way/242641035",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "man_made=water_tower",
+  "x": -1404.2,
+  "z": 2864.5,
+  "osm": "way/249301788",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "amenity=place_of_worship",
+  "x": -1140.3,
+  "z": 3009.9,
+  "osm": "way/249302874",
+  "denom": "baptist",
+  "wiki": ""
+ },
+ {
+  "name": "Église Saint-Lambert",
+  "kind": "amenity=place_of_worship",
+  "x": -2319.9,
+  "z": 2421.3,
+  "osm": "way/249303248",
+  "denom": "catholic",
+  "wiki": ""
+ },
+ {
+  "name": "École du Petit Vaugirard",
+  "kind": "amenity=school",
+  "x": -424.9,
+  "z": 1249.5,
+  "osm": "way/319051067",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Collège Pierre de Montereau",
+  "kind": "amenity=school",
+  "x": -343.5,
+  "z": 1029.3,
+  "osm": "way/319051070",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle Mademoiselle Boyer",
+  "kind": "amenity=school",
+  "x": -729.6,
+  "z": 1901.1,
+  "osm": "way/319051074",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Collège Paul Éluard",
+  "kind": "amenity=school",
+  "x": 869.0,
+  "z": -339.0,
+  "osm": "way/319051081",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École élémentaire Albert Camus",
+  "kind": "amenity=school",
+  "x": 81.3,
+  "z": -448.2,
+  "osm": "way/319057725",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Prieuré Saint-Martin",
+  "kind": "amenity=place_of_worship",
+  "x": 614.1,
+  "z": 130.2,
+  "osm": "way/319057726",
+  "denom": "catholic",
+  "wiki": ""
+ },
+ {
+  "name": "Pont d'Yonne",
+  "kind": "bridge=yes",
+  "x": 160.8,
+  "z": 1032.5,
+  "osm": "way/345585228",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Église Notre-Dame des Nations",
+  "kind": "amenity=place_of_worship",
+  "x": 28.5,
+  "z": 70.5,
+  "osm": "way/349301427",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Château des Amendes",
+  "kind": "historic=castle",
+  "x": -416.9,
+  "z": 1310.5,
+  "osm": "way/349308917",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Musée municipal de la Faïence de Montereau",
+  "kind": "tourism=museum",
+  "x": 51.5,
+  "z": 1110.5,
+  "osm": "way/349308920",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Collégiale Notre-Dame et Saint-Loup",
+  "kind": "amenity=place_of_worship",
+  "x": 95.9,
+  "z": 1147.6,
+  "osm": "way/349313661",
+  "denom": "catholic",
+  "wiki": "fr:Collégiale Notre-Dame-et-Saint-Loup de Montereau-Fault-Yonne"
+ },
+ {
+  "name": "Pôle de formation aux Métiers de la Fibre Optique et du Numérique",
+  "kind": "amenity=college",
+  "x": -993.8,
+  "z": 1736.8,
+  "osm": "way/349315606",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Institut de Formation en Soins Infirmiers",
+  "kind": "amenity=college",
+  "x": -466.2,
+  "z": 1567.3,
+  "osm": "way/349316033",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": -2124.2,
+  "z": 1510.7,
+  "osm": "way/461740304",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "bridge=yes",
+  "x": -377.8,
+  "z": -1824.3,
+  "osm": "way/733900510",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "bridge=yes",
+  "x": -392.2,
+  "z": -1771.2,
+  "osm": "way/733900512",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École élémentaire Pierre et Marie Curie",
+  "kind": "amenity=school",
+  "x": -170.2,
+  "z": -177.1,
+  "osm": "way/754328698",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Chemin de Halage de l'Yonne",
+  "kind": "bridge=yes",
+  "x": 351.7,
+  "z": 2547.4,
+  "osm": "way/770984401",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "La Seine",
+  "kind": "waterway=river",
+  "x": -2853.9,
+  "z": 2125.9,
+  "osm": "way/794387392",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Lycée Gustave Eiffel",
+  "kind": "amenity=school",
+  "x": -2245.0,
+  "z": 2696.3,
+  "osm": "way/893161745",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle Antoine de Saint-Exupéry",
+  "kind": "amenity=school",
+  "x": 219.4,
+  "z": 6.0,
+  "osm": "way/893170998",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc des Aulnettes",
+  "kind": "leisure=park",
+  "x": -2746.5,
+  "z": 2974.1,
+  "osm": "way/948452728",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc de l'église",
+  "kind": "leisure=park",
+  "x": -2323.6,
+  "z": 2416.0,
+  "osm": "way/948452730",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Parc de la Mairie",
+  "kind": "leisure=park",
+  "x": -2040.5,
+  "z": 2329.1,
+  "osm": "way/948468010",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Square Lucien Barbier",
+  "kind": "leisure=park",
+  "x": -962.2,
+  "z": 2423.3,
+  "osm": "way/948468018",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Collège Elsa Triolet",
+  "kind": "amenity=school",
+  "x": -1629.9,
+  "z": 2665.9,
+  "osm": "way/1000641204",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Lycée technologique Flora Tristan",
+  "kind": "amenity=school",
+  "x": -936.0,
+  "z": 2198.6,
+  "osm": "way/1000643424",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "",
+  "kind": "bridge=yes",
+  "x": -415.8,
+  "z": -1686.9,
+  "osm": "way/1101778936",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École primaire Louis Aragon",
+  "kind": "amenity=school",
+  "x": -1263.0,
+  "z": 2558.7,
+  "osm": "way/1430384454",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Square Robert Malveau",
+  "kind": "leisure=park",
+  "x": -1545.4,
+  "z": 2461.1,
+  "osm": "way/1430384455",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École primaire Louis Pasteur",
+  "kind": "amenity=school",
+  "x": -2038.8,
+  "z": 2261.5,
+  "osm": "way/1430384458",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École élémentaire Les Ormeaux",
+  "kind": "amenity=school",
+  "x": -422.1,
+  "z": 147.8,
+  "osm": "way/1433150150",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle Les Ormeaux",
+  "kind": "amenity=school",
+  "x": -358.5,
+  "z": 157.2,
+  "osm": "way/1433150155",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École primaire Villa Marie-Louise",
+  "kind": "amenity=school",
+  "x": -275.9,
+  "z": 537.8,
+  "osm": "way/1433150156",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École maternelle Albert Camus",
+  "kind": "amenity=school",
+  "x": 113.1,
+  "z": -406.8,
+  "osm": "way/1433150160",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École primaire privée Sacré Coeur",
+  "kind": "amenity=school",
+  "x": -767.3,
+  "z": 1716.7,
+  "osm": "way/1433150161",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "École élémentaire Rose Dulion",
+  "kind": "amenity=school",
+  "x": -1310.2,
+  "z": 2699.6,
+  "osm": "way/1434313673",
+  "denom": "",
+  "wiki": ""
+ },
+ {
+  "name": "Voie Romaine Montereau Melun",
+  "kind": "historic=road",
+  "x": -10175.1,
+  "z": -7920.0,
+  "osm": "relation/12630508",
+  "denom": "",
+  "wiki": ""
+ }
+]
