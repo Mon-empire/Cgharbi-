@@ -466,3 +466,5 @@
 #da-experience.is-live .v2-rooms{width:min(440px,calc(100vw - 2 * var(--gut)))}
 #da-experience.is-live .v2-walk__step{transition:opacity .2s ease-in,transform .3s ease-in}
 #da-experience.is-live .v2-walk__step.is-on{transition:opacity .6s .25s ease-out,transform .8s .25s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-terr__schema{top:clamp(66px,9vh,96px);bottom:auto;right:var(--gut);left:auto;max-width:min(38vw,460px);text-align:right;font-size:10.5px;color:rgba(201,214,223,.75);text-transform:none;letter-spacing:.02em}
+@media (max-width:760px){#da-experience.is-live .v2-terr__schema{top:auto;bottom:6px;left:var(--gut);right:var(--gut);max-width:none;text-align:left;font-size:9.5px}}

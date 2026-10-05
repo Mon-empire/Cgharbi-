@@ -267,6 +267,7 @@ async function start() {
   /* le vrai Montereau vu du ciel (orthophotos IGN, relief réel, bâtiments OSM) */
   const { createAerial } = await import('./world/aerial.js');
   const aerial = await createAerial(ctx); ctx.aerial = aerial;
+  const markAvoid = { hero: [...R.querySelectorAll('.v2-hero__t, .v2-hero__sub, .v2-hero__src, .v2-kicker')], terr: [...R.querySelectorAll('.v2-terr__head, .v2-terr__list, .v2-terr__schema')] };
   const { createWings, createStreaks, createDust } = await import('./world/wings.js');
   const wings = createWings(ctx, await tex('aile-goeland.png')), streaks = createStreaks(ctx), dustMotes = createDust(ctx);
   camera.add(wings.group, streaks.group, dustMotes.group); scene.add(camera);
@@ -500,7 +501,7 @@ async function start() {
       /* le ciel de l'ouverture : la ville entière en contrebas, le faisceau sur le pavillon s'éteint dans la plongée */
       const sk = pRaw / SKY;
       const terrSky = center === 'terr';
-      aerial.update(sky || terrSky, t, camera.position); sky3.group.visible = !(sky || terrSky); aerial.marks(terrSky ? ss(0, .97, pc) : sk, sky || terrSky, terrSky ? 'terr' : 'hero');
+      aerial.update(sky || terrSky, t, camera.position); sky3.group.visible = !(sky || terrSky); aerial.marks(terrSky ? ss(0, .97, pc) : sk, sky || terrSky, terrSky ? 'terr' : 'hero', terrSky ? markAvoid.terr : markAvoid.hero);
       if (terrSky) { moon.color.set('#FFE0B8'); moon.intensity = 2.2; hemi.intensity = .9; }
       moon.color.set(sky ? '#FFE0B8' : '#B9C6FF'); if (sky) { moon.intensity = 2.2; hemi.intensity = .9; }
       /* plongée dans la neige : la nuit se referme (bleu nuit, jamais de blanc), on ressort au ras de l'allée */

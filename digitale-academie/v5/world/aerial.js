@@ -326,16 +326,20 @@ export async function createAerial(ctx) {
     m.p = new THREE.Vector3(m.x, height(m.x, m.z) + m.up, m.z);
   });
   const pv = new THREE.Vector3();
-  const marks = (k, on, mode) => {
+  /* avoid : éléments de texte à l'écran ; un repère qui tomberait dessous s'efface (jamais de texte sur du texte) */
+  const marks = (k, on, mode, avoid = []) => {
     mk.style.display = on ? '' : 'none'; if (!on) return;
-    const cv = ctx.renderer.domElement, W = cv.clientWidth, H = cv.clientHeight;
+    const cv = ctx.renderer.domElement, W = cv.clientWidth, H = cv.clientHeight, top = cv.getBoundingClientRect().top;
+    const boxes = avoid.filter(e => e && +getComputedStyle(e).opacity > .05).map(e => e.getBoundingClientRect());
     MARKS.forEach(m => {
       const w = mode === 'terr' ? m.wt : m.w, a = ss(w[0], w[0] + .04, k) * (1 - ss(w[1] - .04, w[1], k));
       if (a < .01) { m.el.style.opacity = 0; return; }
       pv.copy(m.p); G.localToWorld(pv); const d = pv.distanceTo(ctx.camera.position); pv.project(ctx.camera);
       const vis = pv.z < 1 && Math.abs(pv.x) < .92 && Math.abs(pv.y) < .9 ? 1 : 0;
-      m.el.style.opacity = (a * vis * (1 - ss(900, 1400, d / SCALE))).toFixed(3);
-      m.el.style.transform = `translate3d(${((pv.x * .5 + .5) * W).toFixed(1)}px,${((.5 - pv.y * .5) * H).toFixed(1)}px,0)`;
+      const x = (pv.x * .5 + .5) * W, y = (.5 - pv.y * .5) * H, hw = (m.el.firstChild.offsetWidth || 160) / 2 + 12, yy = y + top;
+      const hit = boxes.some(b => x + hw > b.left && x - hw < b.right && yy + 8 > b.top && yy - (m.area ? 20 : 84) < b.bottom);
+      m.el.style.opacity = (a * vis * (hit ? 0 : 1) * (1 - ss(900, 1400, d / SCALE))).toFixed(3);
+      m.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
     });
   };
 
