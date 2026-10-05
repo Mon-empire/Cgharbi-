@@ -34,6 +34,16 @@ import('./core/sound.js').then(({ initSound }) => {
   R.addEventListener('da:flight', e => snd.flight(e.detail));
 }).catch(e => console.warn('[Digitale Académie] son indisponible :', e));
 const motionBtn = R.querySelector('[data-da-action="motion"]');
+/* version de relecture : un bouton déplie toutes les marques « à valider » en pastilles lisibles */
+if (R.hasAttribute('data-da-recette')) {
+  const n = R.querySelectorAll('.v2-badge').length, ctrl = R.querySelector('.v2-ctrl');
+  if (n && ctrl) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'v2-ctrl__btn v2-ctrl__btn--review'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `Relecture <span aria-hidden="true">· ${n}</span><span class="v2-sr"> : afficher les ${n} points à valider</span>`;
+    b.addEventListener('click', () => { const on = R.classList.toggle('is-relecture'); b.setAttribute('aria-pressed', String(on)); });
+    ctrl.prepend(b);
+  }
+}
 if (motionBtn) {
   motionBtn.setAttribute('aria-pressed', String(reduce));
   motionBtn.addEventListener('click', () => { try { localStorage.setItem('da-motion', reduce ? 'on' : 'off'); } catch (e) { /* */ } location.reload(); });

@@ -10,7 +10,7 @@ export async function create(ctx, el) {
   const steps = [...el.querySelectorAll('.v2-walk__step')];
   const counter = el.querySelector('.v2-walk__count'), head = el.querySelector('.v2-walk__head'), box = el.querySelector('.v2-walk__steps');
   const N = steps.length, NAVE = 'b30', SKY = 'b14';
-  shot.load(NAVE); shot.load(SKY);
+  /* chargées pendant la visite (voir campus.js), pas au démarrage */
   const POSE = { pos: library.center.clone().add(new THREE.Vector3(0, 10, 9)), look: library.center.clone().add(new THREE.Vector3(0, 14, 0)) };
   /* stations sur l'axe de la nef (u,v mesurés sur la photo) : sol proche, allée, portes du fond, galeries du fond, verrière */
   const S = [[.5, .905], [.5, .76], [.5, .628], [.5, .562], [.5, .49], [.5, .398], [.5, .17]].slice(0, N);

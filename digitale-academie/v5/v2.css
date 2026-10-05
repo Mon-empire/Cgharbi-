@@ -69,8 +69,8 @@
 
 /* ---------- badges de relecture (visibles seulement en version de relecture) ---------- */
 #da-experience .v2-badge{display:none}
-#da-experience[data-da-recette] .v2-badge{display:inline-flex;vertical-align:middle;margin-left:.4em;padding:2px 8px;border-radius:999px;font:500 10px/1.6 var(--display);letter-spacing:.14em;text-transform:uppercase;color:#FFD600;box-shadow:inset 0 0 0 1px rgba(255,214,0,.55);white-space:nowrap;-webkit-text-stroke:0;font-style:normal}
-#da-experience[data-da-recette] .v2-badge--old{color:#FF9A6B;box-shadow:inset 0 0 0 1px rgba(255,154,107,.6)}
+#da-experience[data-da-recette].is-relecture .v2-badge{display:inline-flex;width:auto;height:auto;font-size:10px;vertical-align:middle;margin-left:.4em;padding:2px 8px;border-radius:999px;font:500 10px/1.6 var(--display);letter-spacing:.14em;text-transform:uppercase;color:#FFD600;box-shadow:inset 0 0 0 1px rgba(255,214,0,.55);white-space:nowrap;-webkit-text-stroke:0;font-style:normal}
+#da-experience[data-da-recette].is-relecture .v2-badge--old{color:#FF9A6B;box-shadow:inset 0 0 0 1px rgba(255,154,107,.6)}
 #da-experience .v2-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* ---------- navigation interne ---------- */
@@ -432,3 +432,37 @@
 #da-experience.is-live .v2-lieu .v2-facts li:first-child{width:max-content;max-width:min(80vw,420px);text-align:center}
 #da-experience.is-live .v2-lieu .v2-facts li:first-child::before{margin:0 auto 12px}
 #da-experience.is-live .v2-lieu .v2-facts li:first-child span{margin:0 auto}
+
+/* ================= mobile : bibliothèque ================= */
+@media (max-width:760px){
+  #da-experience.is-live .v2-asc__note{display:none}
+  /* accompagnement : un soutien à la fois (les autres en titres), l'atelier qui s'élève nommé en haut à droite */
+  #da-experience.is-live .v2-human__list{bottom:28px;padding:10px 14px}
+  #da-experience.is-live .v2-human__list > div{padding:6px 0}
+  #da-experience.is-live .v2-human__list dt{font-size:15px}
+  #da-experience.is-live .v2-human__list dd{display:none;font-size:13px}
+  #da-experience.is-live .v2-human__list > div.is-cur dd{display:block}
+  #da-experience.is-live .v2-work{display:block;right:var(--gut);left:auto;top:calc(var(--vh) * .3);bottom:auto}
+  #da-experience.is-live .v2-work li{display:none}
+  #da-experience.is-live .v2-work li.is-on{display:block;font-size:24px}
+}
+
+/* ================= relecture : marques discrètes par défaut, pastilles complètes sur demande ================= */
+/* une petite marque ambrée signale chaque point à valider (texte toujours lu par les lecteurs d'écran, détail au survol) */
+#da-experience[data-da-recette] .v2-badge{display:inline-block;vertical-align:super;width:7px;height:7px;margin-left:.3em;border-radius:50%;background:#FFB000;box-shadow:0 0 0 3px rgba(255,176,0,.18);font-size:0;line-height:0;color:transparent;overflow:hidden;white-space:nowrap;cursor:help}
+#da-experience[data-da-recette] .v2-badge--old{background:#FF8A5B;box-shadow:0 0 0 3px rgba(255,138,91,.18)}
+#da-experience[data-da-recette].is-relecture .v2-badge{background:rgba(4,8,13,.6);vertical-align:middle;line-height:1.6;overflow:visible}
+
+/* ================= crédits : discrets, en bas, sur une ligne (plus de bloc en haut de l'image) ================= */
+#da-experience.is-live .v2-lieu .v2-credit,#da-experience.is-live .v2-campus .v2-credit{top:auto;right:auto;left:var(--gut);bottom:10px;max-width:min(52vw,640px);text-align:left;font-size:11px;line-height:1.4;color:rgba(201,214,223,.72);white-space:normal}
+@media (max-width:760px){#da-experience.is-live .v2-lieu .v2-credit,#da-experience.is-live .v2-campus .v2-credit{right:120px;max-width:none;font-size:10px;bottom:8px}}
+#da-experience.is-live .v2-biblio__credit{top:clamp(66px,9vh,96px);right:var(--gut);left:auto;bottom:auto;margin:0;max-width:min(38vw,460px);text-align:right;font-size:10.5px;line-height:1.4;color:rgba(201,214,223,.7)}
+#da-experience .v2-biblio__credit a{color:inherit}
+@media (max-width:760px){#da-experience.is-live .v2-biblio__credit{top:auto;bottom:6px;left:var(--gut);right:var(--gut);max-width:none;text-align:left;font-size:9.5px}}
+
+/* ================= la visite : une salle à la fois (jamais deux titres superposés), même fiche que la bibliothèque ================= */
+#da-experience.is-live .v2-room{transition:opacity .2s ease-in,transform .3s ease-in;padding:20px 24px 20px 22px;border-left:2px solid var(--signal);border-radius:0 14px 14px 0;background:linear-gradient(90deg,rgba(4,8,13,.72),rgba(4,8,13,.32));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#da-experience.is-live .v2-room.is-on{transition:opacity .6s .25s ease-out,transform .8s .25s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-rooms{width:min(440px,calc(100vw - 2 * var(--gut)))}
+#da-experience.is-live .v2-walk__step{transition:opacity .2s ease-in,transform .3s ease-in}
+#da-experience.is-live .v2-walk__step.is-on{transition:opacity .6s .25s ease-out,transform .8s .25s cubic-bezier(.2,.8,.2,1)}

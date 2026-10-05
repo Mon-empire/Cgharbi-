@@ -14,7 +14,7 @@ export async function create(ctx, el) {
   const items = [...el.querySelectorAll('.v2-step')];
   const head = el.querySelector('.v2-asc__head'), list = el.querySelector('.v2-steps'), note = el.querySelector('.v2-asc__note');
   const N = items.length, IMG = 'b31';
-  shot.load(IMG);
+  /* chargée pendant la visite (voir campus.js), pas au démarrage */
   /* repères mesurés sur la photo (u,v ∈ [0,1], v vers le bas) : haut de la rambarde de chaque galerie, table centrale */
   const COL = .414;   /* la colonne que le fil remonte */
   const L = [

@@ -174,7 +174,7 @@ export async function createAerial(ctx) {
       }));
     };
     await Promise.all([
-      build(Zn.ville, 'ville', LOW ? 4 : 2, Zn.pav.Z.rect, HIQ),
+      build(Zn.ville, 'ville', LOW ? 4 : HIQ ? 1 : 2, Zn.pav.Z.rect, HIQ),
       build(Zn.pav, 'pav', LOW ? 2 : 1, null, !LOW)
     ]);
   }
@@ -290,9 +290,9 @@ export async function createAerial(ctx) {
   const path = new THREE.CatmullRomCurve3(Zn ? [
     V(-1250, 560, 2050),   /* au-dessus des nuages, au sud-ouest ; le soleil couchant sur la gauche */
     V(-820, 360, 1640),    /* à travers la couche, la vieille ville apparaît */
-    V(-330, 120, 1290),    /* sur les toits de la vieille ville */
-    V(60, -12, 1060),      /* on plonge sur l'Yonne */
-    V(230, -28, 830),      /* au ras de l'eau : le confluent, sous le pont */
+    V(-330, 230, 1290),    /* au-dessus de la vieille ville (assez haut : la vraie surface reste photographique) */
+    V(110, 25, 1120),      /* on plonge sur l'Yonne, la collégiale à gauche */
+    V(230, -12, 840),      /* au ras de l'eau : le confluent, le pont de Seine */
     V(450, -36, 720),      /* la Seine ; le coteau boisé de Surville se dresse devant */
     V(400, 40, 420),       /* on remonte le coteau, au-dessus des arbres */
     V(250, 95, 170),       /* la crête : le plateau, le pavillon en vue */
@@ -310,9 +310,9 @@ export async function createAerial(ctx) {
 
   /* ---------- repères : les vrais noms (OpenStreetMap), posés sur les lieux, le temps de les survoler ---------- */
   const MARKS = [
-    { n: 'Montereau-Fault-Yonne', x: -90.7, z: 1335.5, up: 0, w: [.02, .2], wt: [.08, .3], big: true },
-    { n: 'Collégiale Notre-Dame et Saint-Loup', x: 95.9, z: 1147.6, up: 30, w: [.17, .37], wt: [.22, .45] },
-    { n: 'L’Yonne', x: 150, z: 1300, up: 2, w: [.2, .4], wt: [.14, .42] },
+    { n: 'Montereau-Fault-Yonne', x: -90.7, z: 1335.5, up: 0, w: [.14, .3], wt: [.08, .3], big: true },
+    { n: 'Collégiale Notre-Dame et Saint-Loup', x: 95.9, z: 1147.6, up: 30, w: [.24, .4], wt: [.22, .45] },
+    { n: 'L’Yonne', x: 150, z: 1300, up: 2, w: [.28, .42], wt: [.14, .42] },
     { n: 'La Seine', x: 480, z: 780, up: 2, w: [.36, .56], wt: [.14, .5] },
     { n: 'Gare de Montereau', x: -1055.7, z: 1950.7, up: 4, w: [0, 0], wt: [.1, .3] },
     { n: 'Surville', x: 250, z: 60, up: 20, w: [0, 0], wt: [.42, .62], big: true, area: true },

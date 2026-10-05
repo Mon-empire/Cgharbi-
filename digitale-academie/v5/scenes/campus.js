@@ -21,6 +21,7 @@ export async function create(ctx, el) {
   const segOf = p => PHOTO.find(([, a, b]) => p >= a && p < b);
   const roomIdx = p => p < .15 ? 0 : p < .31 ? 1 : p < .48 ? 2 : p < .635 ? 3 : 4;
   let active = -1, lastNeon = '';
+  let preloaded = false;
   return {
     cam(p, m) {
       const seg = segOf(p);
@@ -41,6 +42,8 @@ export async function create(ctx, el) {
       return { pos, look, cut: 'pavillon' };
     },
     update(p, t, dt, m, isCurrent) {
+      /* la bibliothèque (vraies photos) se charge pendant la visite, avant d'être vue */
+      if (p > .2 && ctx.shot && !preloaded) { preloaded = true; ['b31', 'b30', 'b14', 'b15'].forEach(ctx.shot.load); }
       const idx = roomIdx(p);
       if (idx !== active) { if (active >= 0 && isCurrent && idx < 2) ctx.cue('borne'); active = idx; rooms.forEach((r, i) => r.classList.toggle('is-on', i === idx)); }
       el.querySelector('.v2-rooms').style.opacity = 1 - ss(.86, .94, p);

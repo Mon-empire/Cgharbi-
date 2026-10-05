@@ -3,6 +3,43 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.7 (5 octobre 2026) : vraie 3D de Montereau, vraie bibliothèque, clarté
+Retour de la Ville : « niveau médiocre », pas reconnaissable, pas cinématographique, intérieur confus, bibliothèque sous-exploitée,
+survol final « pas mon trop », mobile difficile. Feu vert sur tous les outils ; pas de clé Google (alternative gratuite demandée).
+
+**Données (GitHub Actions, l'environnement de développement n'atteint pas l'IGN, Wikimedia ni Overpass)**
+- `.github/workflows/ign-montereau.yml` → `build/ign/build.py` : MNS IGN (`ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS`,
+  bâtiments et arbres compris) 2 m sur 3 × 3 km et 1 m sur 800 × 800 m autour du pavillon, orthophotos 0,5 m et 0,2 m
+  (`v5/assets/ign/`). `build/ign/lieux.py` : noms et positions réels d'OpenStreetMap (`lieux.json`).
+- `.github/workflows/biblio.yml` → `build/biblio/fetch.py` (inventaire Commons) puis `photos.py` : 16 photos retenues de la
+  George Peabody Library (la bibliothèque du papier peint de la salle d'étude) en 3840 px + carte de profondeur estimée
+  (Depth Anything V2 Small). Licences : Carol M. Highsmith (domaine public), Patrick Gillespie (CC BY 2.0),
+  Matthew Petroff (CC BY-SA 3.0) — voir `build/biblio/out/choix.json`.
+- Poussée des workflows robuste (rebase et nouvelle tentative), `concurrency: data-push`.
+
+**Ouverture** (`world/aerial.js`) : la vraie surface IGN remplace le relief SRTM + bâtiments OSM dans 3 × 3 km (une dalle par
+orthophoto, jupe aux raccords ; murs = teinte moyenne du voisinage, aucune matière inventée ; ombres longues du MNS).
+Nouveau vol : nuages → piqué sur la vieille ville → ras de l'Yonne, collégiale, confluent, pont de Seine → remontée du coteau
+boisé de Surville (battements) → plateau → pavillon. Garde de 22 m au-dessus de la surface réelle. Repères projetés :
+Montereau-Fault-Yonne, Collégiale Notre-Dame et Saint-Loup, L'Yonne, La Seine, Digitale Académie.
+
+**Bibliothèque** (`world/depthshot.js`) : photo + profondeur = plan de cinéma (grue, travelling avant, mise au point,
+rayons de la verrière, fondu par la profondeur) ; calque 2D (fil, repères) projeté avec la même transformation.
+- IV Formations (élévation de face, P. Gillespie) : un étage = un niveau (DAEU salle de lecture, BTS 1re galerie, Licence et
+  Bachelor côte à côte à la 2e, Master 3e, DU 4e) ; le fil monte une colonne et allume la rambarde ; panneau d'ascenseur ;
+  une seule fiche lisible reliée à son étage ; plan final : toute l'élévation allumée.
+- V Parcours (nef, M. Petroff) : sept stations sur l'axe jusqu'à la verrière, travelling avant ; 7e étape sous la verrière.
+- VI Accompagnement : la rupture photo réelle (inchangée), puis lanternes de papier qui quittent les tables de lecture, les
+  deux coachs en lucioles ; plus d'étiquettes doublées (la liste des ateliers nomme la lanterne active).
+- Le papier peint de la salle d'étude brûle sur la vraie bibliothèque (plus de bibliothèque modélisée à l'image).
+
+**VII Nous trouver** : la vraie ville en 3D (plus de maquette) : survol à la manière d'un globe virtuel, repères (gare,
+collégiale, rivières, Surville), fil d'or du confluent au pavillon, faisceau, plongée dans le faisceau (relais du final).
+
+**Clarté** : « Le lieu » — un chiffre à la fois (le sortant s'efface avant que l'autre n'entre), légende de « 3 000+ » sous
+le chiffre de lumière. Marques « à valider » discrètes par défaut + bouton « Relecture · N » qui les déplie. Crédits en bas,
+sur une ligne. Mobile : une fiche à la fois, ateliers nommés en haut, note de relecture masquée.
+
 ## Version 14.6 (5 octobre 2026) : les intérieurs en photographie
 Plus aucune pièce du pavillon modélisée à l'image (`world/backdrop.js` : photo plein cadre attachée à l'œil, travelling
 avant lent, fondu enchaîné, néons, dissolution ; la nuée, les lucioles et les livres restent au-dessus).

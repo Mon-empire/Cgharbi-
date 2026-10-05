@@ -11,7 +11,7 @@ export async function create(ctx, el) {
   const items = [...el.querySelectorAll('.v2-work li')];
   const supports = [...el.querySelectorAll('.v2-human__list > div')];
   const N = items.length, IMG = 'b15';
-  shot.load(IMG);
+  /* chargée pendant la visite (voir campus.js), pas au démarrage */
   const POSE = { pos: library.center.clone().add(new THREE.Vector3(0, 3, 9)), look: library.center.clone().add(new THREE.Vector3(0, 6, 0)) };
   /* départ : les tables de lecture (mesurées sur la photo) ; arrivée : sous la verrière, en éventail */
   const START = [[.4, .86], [.6, .85], [.43, .81], [.57, .8], [.46, .78], [.54, .78], [.5, .77]];
@@ -35,7 +35,8 @@ export async function create(ctx, el) {
       let idx = 0;
       lanterns.forEach((o, i) => { if (p >= launchAt(i)) idx = i; o.on = damp(o.on, i === idx && p >= launchAt(i) ? 1 : 0, 4, dt); });
       if (idx !== active) { if (active >= 0 && isCurrent) ctx.cue('borne'); active = idx; items.forEach((li, i) => li.classList.toggle('is-on', i === idx && p >= launchAt(0))); }
-      supports.forEach((d, i) => d.classList.toggle('is-on', p > Q0 + .02 + i * .05));
+      let cur = -1; supports.forEach((d, i) => { const o = p > Q0 + .02 + i * .05; d.classList.toggle('is-on', o); if (o) cur = i; });
+      supports.forEach((d, i) => d.classList.toggle('is-cur', i === cur));
       /* le silence : la scène s'éteint, la vraie salle apparaît, le titre glisse derrière l'étudiante */
       const quiet = p < Q0 - .04;
       el.classList.toggle('is-quiet', quiet);
