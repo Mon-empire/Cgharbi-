@@ -357,16 +357,16 @@ export async function createAerial(ctx) {
   /* y : mètres au-dessus du pavillon (la Seine est à -72 m, le plateau de Surville à 0) */
   const path = new THREE.CatmullRomCurve3(Zn ? [
     V(-1250, 560, 2050),   /* au-dessus des nuages, au sud-ouest ; le soleil couchant sur la gauche */
-    V(-820, 360, 1640),    /* à travers la couche, la vieille ville apparaît */
-    V(-330, 230, 1290),    /* au-dessus de la vieille ville (assez haut : la vraie surface reste photographique) */
-    V(110, 25, 1120),      /* on plonge sur l'Yonne, la collégiale à gauche */
-    V(230, -12, 840),      /* au ras de l'eau : le confluent, le pont de Seine */
-    V(450, -36, 720),      /* la Seine ; le coteau boisé de Surville se dresse devant */
-    V(400, 40, 420),       /* on remonte le coteau, au-dessus des arbres */
-    V(250, 95, 170),       /* la crête : le plateau, le pavillon en vue */
-    V(60, 130, -150),      /* on passe le pavillon, on vire au nord */
-    V(-60, 150, -270),     /* au nord, face au sud : la cour du pavillon en ligne de mire */
-    V(-10, 140, -140),
+    V(-820, 390, 1640),    /* à travers la couche, la vieille ville apparaît */
+    V(-330, 260, 1290),    /* au-dessus de la vieille ville */
+    V(110, 150, 1120),     /* la collégiale à gauche, l'Yonne dessous */
+    V(240, 120, 860),      /* le confluent, le pont de Seine */
+    V(450, 130, 700),      /* la Seine ; le coteau boisé de Surville se dresse devant */
+    V(420, 175, 430),      /* on remonte le coteau */
+    V(250, 195, 170),      /* la crête : le plateau, le pavillon en vue */
+    V(60, 195, -150),      /* on passe le pavillon, on vire au nord */
+    V(-60, 190, -270),     /* au nord, face au sud : la cour du pavillon en ligne de mire */
+    V(-10, 160, -140),
     V(0, 105, -45)         /* au-dessus du pavillon, regard plongeant, puis le piqué */
   ] : [
     V(-1050, 590, 1900), V(-680, 470, 1480), V(-260, 330, 1180), V(230, 245, 760), V(330, 190, 260),
@@ -468,8 +468,9 @@ export async function createAerial(ctx) {
       G.updateMatrixWorld(true);
       /* temps égal par étape (et non par distance) : rapide en altitude, lent près du sol, comme un vrai vol */
       const p = path.getPoint(k), ahead = path.getPoint(Math.min(1, k + .025));
-      /* jamais dans un arbre ni un toit : 22 m de garde au-dessus de la vraie surface */
-      p.y = Math.max(p.y, height(p.x, p.z) + 22); ahead.y = Math.max(ahead.y, height(ahead.x, ahead.z) + 22);
+      /* jamais près d'un arbre ni d'un toit : à basse altitude, le relief des arbres devient flou */
+      const clear = 22 + 48 * (1 - ss(.86, .95, k));   /* 70 m au-dessus des arbres et des toits, sauf dans le piqué final */
+      p.y = Math.max(p.y, height(p.x, p.z) + clear); ahead.y = Math.max(ahead.y, height(ahead.x, ahead.z) + clear);
       const h = p.y - height(p.x, p.z);
       /* l'oiseau regarde devant lui ; haut, il plonge le regard ; au ras de l'eau, il regarde l'horizon */
       tmp.copy(ahead).sub(p); const climb = tmp.y; tmp.y = 0; tmp.normalize();
