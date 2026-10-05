@@ -1,8 +1,9 @@
 /*
   II · LE LIEU · on passe la porte, et les chiffres prennent corps
   Le pavillon est encore éteint. Par la porte ouverte entrent 3 000 points de lumière : un par formation (l'Université
-  vient à toi). Ils se rassemblent en « 3 000+ » au milieu de la cafétéria, puis tombent au sol et deviennent la fibre
-  qui court sous les 600 m² du pavillon. Deux d'entre eux se relèvent : les deux coachs, deux lucioles (jaune, cyan)
+  vient à toi). Ils se rassemblent en « 3 000+ » au milieu de la cafétéria, puis se rangent en une surface de 600 cases
+  d'un mètre carré (30 × 20 : les 600 m² du pavillon, à l'échelle de la case, sans plan inventé), que la fibre relie case
+  après case pendant que le compteur monte jusqu'à 600. Deux points s'en détachent : les deux coachs, deux lucioles (jaune, cyan)
   qu'on retrouvera parmi les lanternes de l'atelier. Enfin les néons s'allument : la visite commence.
   Chiffres affichés : ceux de la page (3 000+ formations, 600 m² fibrés, 2 coachs) ; aucune quantité inventée.
 */
@@ -20,7 +21,7 @@ export async function create(ctx, el) {
     [0, V(2.05, 1.62, 2.4), V(2.05, 1.45, -6)],        /* la porte */
     [.16, V(2.5, 1.6, -2.7), V(6.4, 1.5, -5.6)],        /* on entre : la nuée arrive par-dessus l'épaule */
     [.4, V(2.6, 1.62, -3.1), V(6.6, 1.45, -5.7)],       /* « 3 000+ » face à nous */
-    [.6, V(10.6, 2.3, -2.7), V(1.5, .1, -6.4)],         /* plongée : la fibre court sous tout le pavillon */
+    [.6, V(2.9, 1.66, -3.2), V(6.6, 1.5, -5.7)],        /* « 600 m² » : la surface de lumière, face à nous */
     [.78, V(1.8, 1.7, -3), V(5.6, 1.4, -6.2)],          /* les deux lucioles */
     [1, V(3.4, 1.6, -2.9), V(8.5, 1.1, -5.8)]           /* néons allumés : départ de la visite */
   ];
@@ -55,25 +56,32 @@ export async function create(ctx, el) {
     const T = tris[lo]; let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
     return T.a.clone().addScaledVector(T.b.clone().sub(T.a), u).addScaledVector(T.c.clone().sub(T.a), v).applyMatrix4(holder.matrixWorld);
   };
-  /* fibre : un réseau orthogonal sous le plan du pavillon (bloc du fond et deux ailes), départ depuis la porte */
-  const segs = [];
-  const addSeg = (x0, z0, x1, z1) => segs.push([x0, z0, x1, z1, Math.hypot(x1 - x0, z1 - z0)]);
-  addSeg(2.05, -1.9, 2.05, -15.4);
-  for (let z = -3.2; z >= -15.4; z -= 2.4) addSeg(-11.4, z, 11.4, z);
-  for (let x = -10.8; x <= 10.8; x += 2.4) addSeg(x, -2.4, x, -15.4);
-  for (const sx of [-1, 1]) { for (let z = 5.2; z >= -1.6; z -= 2.2) addSeg(sx * 4.6, z, sx * 11.4, z); addSeg(sx * 8, 5.4, sx * 8, -2.4); }
-  const total = segs.reduce((a, s) => a + s[4], 0);
+  /* « 600 m² » : 600 cases d'un mètre carré (30 × 20), à la place du chiffre ; chaque case est un nœud de lumière (5 points) */
+  const COLS = 30, ROWS = 20, CELL = ctx.mobile ? .078 : .142;
+  const node = (c, r) => V((c - (COLS - 1) / 2) * CELL, ((ROWS - 1) / 2 - r) * CELL, 0).applyMatrix4(holder.matrixWorld);
   const pos = new Float32Array(N * 3), aT1 = new Float32Array(N * 3), aT2 = new Float32Array(N * 3), aS = new Float32Array(N), aL = new Float32Array(N);
   const door = pavilion.door;
   for (let i = 0; i < N; i++) {
     /* départ : dans l'embrasure de la porte, de part et d'autre du seuil : c'est la lumière qui attire depuis l'allée */
     pos.set([door.x + rnd(-.9, .9), rnd(.25, 2.4), door.z + rnd(-3.2, .7)], i * 3);
     aT1.set(samplePt().toArray(), i * 3);
-    let r = (i + Math.random() * .5) / N * total, k = 0; while (k < segs.length - 1 && r > segs[k][4]) { r -= segs[k][4]; k++; }
-    const [x0, z0, x1, z1, L] = segs[k], u = Math.min(1, r / L);
-    aT2.set([x0 + (x1 - x0) * u, .025, z0 + (z1 - z0) * u], i * 3);
-    aS[i] = Math.random(); aL[i] = (Math.abs(x0 - door.x) + Math.abs(z0 - door.z)) + r;   /* distance (réseau) depuis la porte */
+    const n = i % (COLS * ROWS), c = n % COLS, r = Math.floor(n / COLS);
+    aT2.set(node(c, r).add(V(rnd(-.012, .012), rnd(-.012, .012), rnd(-.012, .012))).toArray(), i * 3);
+    aS[i] = Math.random(); aL[i] = (c + r) * .42;   /* distance (réseau) depuis l'angle où la fibre entre */
   }
+  /* la fibre : les lignes de la grille, allumées en vague depuis l'angle haut gauche, parcourues d'impulsions */
+  const fl = [], fd = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS - 1; c++) { fl.push(...node(c, r).toArray(), ...node(c + 1, r).toArray()); fd.push(c + r, c + 1 + r); }
+  for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS - 1; r++) { fl.push(...node(c, r).toArray(), ...node(c, r + 1).toArray()); fd.push(c + r, c + r + 1); }
+  const fg = new THREE.BufferGeometry(); fg.setAttribute('position', new THREE.Float32BufferAttribute(fl, 3)); fg.setAttribute('aD', new THREE.Float32BufferAttribute(fd, 1));
+  const FU = { uWave: { value: 0 }, uTime: { value: 0 }, uA: { value: 0 } };
+  const fibre = new THREE.LineSegments(fg, new THREE.ShaderMaterial({
+    uniforms: FU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false,
+    vertexShader: 'attribute float aD;varying float vD;void main(){vD=aD;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader: `uniform float uWave,uTime,uA;varying float vD;void main(){float on=step(vD,uWave*48.);float head=exp(-pow((vD-uWave*48.)*.9,2.));
+      float pulse=pow(.5+.5*sin(vD*1.3-uTime*6.),10.);gl_FragColor=vec4(vec3(1.,.83,.42)*(on*(.35+.9*pulse)+head*1.6)*uA,1.);}`
+  }));
+  fibre.frustumCulled = false; fibre.visible = false; fibre.renderOrder = 10; ctx.scene.add(fibre);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aT1', new THREE.BufferAttribute(aT1, 3));
   geo.setAttribute('aT2', new THREE.BufferAttribute(aT2, 3)); geo.setAttribute('aS', new THREE.BufferAttribute(aS, 1)); geo.setAttribute('aL', new THREE.BufferAttribute(aL, 1));
@@ -90,7 +98,7 @@ export async function create(ctx, el) {
         p+=vec3(sin(uTime*.9+aS*60.),cos(uTime*.7+aS*40.),sin(uTime*.8+aS*20.))*(.025*e+.07*(1.-e)*uPre);
         /* chute vers la fibre : légère avance selon la distance au sol réseau (on voit la nappe se poser depuis la porte) */
         float f=clamp(uFloor*1.6-aS*.25-aL*.012,0.,1.);float ef=f*f*(3.-2.*f);
-        vec3 arc=mix(p,aT2,.5)+vec3(0.,.6*(1.-abs(ef*2.-1.)),0.);
+        vec3 arc=mix(p,aT2,.5)+vec3(0.,.25*(1.-abs(ef*2.-1.)),0.);
         p=bez(p,arc,aT2,ef);
         vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
         float pulse=pow(.5+.5*sin(aL*1.6-uTime*5.),12.);
@@ -111,7 +119,7 @@ export async function create(ctx, el) {
     const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.BufferAttribute(tp, 3)); tg.setAttribute('color', new THREE.BufferAttribute(tc, 3));
     const trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ vertexColors: true, toneMapped: false, transparent: true, blending: THREE.AdditiveBlending }));
     trail.frustumCulled = false; orb.visible = trail.visible = false; orb.renderOrder = trail.renderOrder = 10; ctx.scene.add(orb, trail);
-    return { orb, trail, tp, TR, k, start: V(k ? 4.4 : 3.6, .03, k ? -6.2 : -4.8), init: false };
+    return { orb, trail, tp, TR, k, start: node(k ? 22 : 7, k ? 14 : 6), init: false };
   });
   const HOVER = V(5.2, 1.55, -5.4);
 
@@ -120,7 +128,7 @@ export async function create(ctx, el) {
     /* hors du chapitre : la nuée et les lucioles disparaissent (elles ne doivent pas traîner dans la visite) */
     /* fin de l'ouverture : la nuée attend déjà dans l'embrasure (k de 0 à 1) */
     prelude(k, t) { preK = k; if (k <= 0) return; pts.visible = true; U.uPre.value = k; U.uIn.value = 0; U.uFloor.value = 0; U.uOut.value = 0; U.uTime.value = t; },
-    rest() { if (preK > 0) return; pts.visible = false; luc.forEach(L => { L.orb.visible = L.trail.visible = false; L.init = false; }); },
+    rest() { if (preK > 0) return; pts.visible = false; fibre.visible = false; luc.forEach(L => { L.orb.visible = L.trail.visible = false; L.init = false; }); },
     cam(p, m) {
       const s = shot(p);
       s.pos.x += m.sx * .2; s.pos.y += m.sy * .08;
@@ -135,12 +143,16 @@ export async function create(ctx, el) {
       /* l'accueil, en photographie : la porte passée, la lumière dorée de l'entrée ; les néons s'allument à la fin */
       if (isCurrent && ctx.backdrop) ctx.backdrop.show({
         a: 'accueil', fade: ss(.02, .11, p), zoom: 1.02 + .12 * ss(.08, 1, p),
-        pan: [m.sx * .008, -.05 * ss(.5, .6, p) * (1 - ss(.7, .8, p)) + m.sy * .005],
+        pan: [m.sx * .008, m.sy * .005],
         light: on > 0 ? .5 + .5 * flicker(on) : .5 - .12 * dark, warm: .5, expo: 1
       });
 
       U.uPre.value = 1 - ss(.08, .3, p); U.uTime.value = t; U.uIn.value = ss(.06, .4, p); U.uFloor.value = ss(.46, .64, p); U.uOut.value = ss(.9, 1, p);
       pts.visible = isCurrent && p < .999;
+      /* la fibre relie les 600 cases ; le compteur monte avec la vague */
+      const wave = ss(.55, .68, p);
+      fibre.visible = isCurrent && p > .5 && p < .999; FU.uWave.value = wave; FU.uTime.value = t; FU.uA.value = ss(.53, .58, p) * (1 - .55 * ss(.72, .84, p)) * (1 - U.uOut.value);
+      if (facts[1]) { const st = facts[1].querySelector('strong'); if (st && st.firstChild && st.firstChild.nodeType === 3) st.firstChild.nodeValue = String(Math.round(600 * ss(.54, .68, p))); }
 
       /* lucioles : se détachent de la fibre, s'élèvent en spirale, tournent ensemble, puis filent vers la visite */
       const rise = eOut(ss(.62, .76, p)), leave = eIO(ss(.88, 1, p));
@@ -164,12 +176,13 @@ export async function create(ctx, el) {
       if (act !== act0) { if (act >= 0 && isCurrent) ctx.cue('borne'); act0 = act; }
       facts.forEach((li, i) => li.classList.toggle('is-on', i === act));
       /* la légende de « 3 000+ » se tient sous le chiffre de lumière, pas dans un coin */
-      if (act === 0 && facts[0]) {
-        const box = facts[0].parentElement.getBoundingClientRect(), cv = ctx.renderer.domElement.getBoundingClientRect();
-        capV.copy(TXT).y -= ctx.mobile ? .42 : .78; capV.project(ctx.camera);
+      /* « 600 m² » : le chiffre et sa légende sous la surface de lumière */
+      if ((act === 0 || act === 1) && facts[act]) {
+        const li = facts[act], box = li.parentElement.getBoundingClientRect(), cv = ctx.renderer.domElement.getBoundingClientRect();
+        capV.copy(TXT).y -= act === 0 ? (ctx.mobile ? .42 : .78) : (ctx.mobile ? .86 : 1.55); capV.project(ctx.camera);
         const x = cv.left + (capV.x * .5 + .5) * cv.width, y = cv.top + (.5 - capV.y * .5) * cv.height;
-        facts[0].style.left = (x - box.left - facts[0].offsetWidth / 2).toFixed(1) + 'px';
-        facts[0].style.bottom = 'auto'; facts[0].style.top = (y - box.top).toFixed(1) + 'px';
+        li.style.left = (x - box.left - li.offsetWidth / 2).toFixed(1) + 'px';
+        li.style.bottom = 'auto'; li.style.top = (y - box.top).toFixed(1) + 'px';
       }
       if (spaces) spaces.style.opacity = eOut(ss(.9, .98, p));
 

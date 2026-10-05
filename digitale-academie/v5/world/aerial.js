@@ -25,23 +25,31 @@ export async function createAerial(ctx) {
   ]);
   [tWide, tCity, tPav].forEach(t => { t.anisotropy = ctx.renderer.capabilities.getMaxAnisotropy(); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; });
 
-  /* ---------- la vraie 3D : modèle numérique de surface IGN (bâtiments, arbres, coteau) + orthophotos 0,5 m et 0,2 m ---------- */
-  const IGN = ASSETS + 'ign/';
-  const loadDsm = (f, Z) => new Promise(ok => {
+  /* ---------- la vraie ville : relief IGN (sol nu sous les bâtiments, arbres et ponts ailleurs), orthophotos, bâti BD TOPO ----------
+     ville/ : 2 km autour du pavillon (anneau 2 m, cœur 0,5 m), bâtiments extrudés à leur emprise exacte, toits relevés au MNS ;
+     ign/  : repli (MNS seul, version précédente) */
+  const loadRelief = (dir, f, Z, k) => new Promise(ok => {
     const im = new Image(); im.onload = () => {
       const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
       const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0);
       const px = g.getImageData(0, 0, c.width, c.height).data, A = new Float32Array(c.width * c.height);
-      for (let i = 0; i < A.length; i++) A[i] = (px[i * 4] * 256 + px[i * 4 + 1]) / 10 + Z.base - D.pavAlt;
-      ok({ A, w: c.width, h: c.height, Z });
-    }; im.onerror = () => ok(null); im.src = IGN + f;
+      for (let i = 0; i < A.length; i++) A[i] = (px[i * 4] * 256 + px[i * 4 + 1]) / k + Z.base - D.pavAlt;
+      ok({ A, w: c.width, h: c.height, Z, dir });
+    }; im.onerror = () => ok(null); im.src = dir + f;
   });
   let Zn = null;
   try {
-    const zj = await fetch(IGN + 'zones.json').then(r => r.ok ? r.json() : null);
-    if (zj) {
-      const [dv, dp] = await Promise.all([loadDsm('dsm-ville.png', zj.zones.ville), loadDsm('dsm-pav.png', zj.zones.pav)]);
-      if (dv && dp) Zn = { ville: dv, pav: dp, meta: zj };
+    const VIL = ASSETS + 'ville/', vj = await fetch(VIL + 'ville.json').then(r => r.ok ? r.json() : null).catch(() => null);
+    if (vj) {
+      const [o, i] = await Promise.all([loadRelief(VIL, 'relief-anneau.png', vj.zones.anneau, 20), loadRelief(VIL, 'relief-coeur.png', vj.zones.coeur, 20)]);
+      if (o && i) Zn = { outer: o, inner: i, meta: vj, kind: 'ville' };
+    }
+    if (!Zn) {
+      const IGN = ASSETS + 'ign/', zj = await fetch(IGN + 'zones.json').then(r => r.ok ? r.json() : null);
+      if (zj) {
+        const [o, i] = await Promise.all([loadRelief(IGN, 'dsm-ville.png', zj.zones.ville, 10), loadRelief(IGN, 'dsm-pav.png', zj.zones.pav, 10)]);
+        if (o && i) Zn = { outer: o, inner: i, meta: zj, kind: 'ign' };
+      }
     }
   } catch (e) { Zn = null; }
   const inRect = (r, x, z, m = 0) => x > r[0] + m && x < r[2] - m && z > r[1] + m && z < r[3] - m;
@@ -58,7 +66,7 @@ export async function createAerial(ctx) {
     const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, h = (a, b) => H16[b * E.nx + a] / 10;
     return h(i, j) * (1 - u) * (1 - v) + h(i + 1, j) * u * (1 - v) + h(i, j + 1) * (1 - u) * v + h(i + 1, j + 1) * u * v;
   };
-  const height = (x, z) => Zn && inRect(Zn.pav.Z.rect, x, z, 2) ? dsmAt(Zn.pav, x, z) : Zn && inRect(Zn.ville.Z.rect, x, z, 2) ? dsmAt(Zn.ville, x, z) : height0(x, z);
+  const height = (x, z) => Zn && inRect(Zn.inner.Z.rect, x, z, 2) ? dsmAt(Zn.inner, x, z) : Zn && inRect(Zn.outer.Z.rect, x, z, 2) ? dsmAt(Zn.outer, x, z) : height0(x, z);
   const stride = LOW ? 2 : 1, NX = Math.floor((E.nx - 1) / stride) + 1, NZ = Math.floor((E.nz - 1) / stride) + 1;
   const tp = new Float32Array(NX * NZ * 3), idx = [];
   for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
@@ -67,7 +75,7 @@ export async function createAerial(ctx) {
   }
   for (let j = 0; j < NZ - 1; j++) for (let i = 0; i < NX - 1; i++) {
     const a = j * NX + i;
-    if (Zn && inRect(Zn.ville.Z.rect, tp[a * 3] + stride * E.step * .5, tp[a * 3 + 2] + stride * E.step * .5, 14)) continue;   /* la vraie 3D prend le relais */
+    if (Zn && inRect(Zn.outer.Z.rect, tp[a * 3] + stride * E.step * .5, tp[a * 3 + 2] + stride * E.step * .5, 14)) continue;   /* la vraie 3D prend le relais */
     idx.push(a, a + NX, a + 1, a + 1, a + NX, a + NX + 1);
   }
   const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.BufferAttribute(tp, 3)); tg.setIndex(idx); tg.computeVertexNormals();
@@ -135,10 +143,10 @@ export async function createAerial(ctx) {
   const terrain = new THREE.Mesh(tg, terrMat); terrain.frustumCulled = false; G.add(terrain);
 
   /* la vraie 3D : une dalle par orthophoto, le relief du MNS (bâtiments et arbres compris) ; une jupe cache les raccords */
-  const dsmMeshes = [];
+  const dsmMeshes = [], tileTex = [];
   if (Zn) {
     const tl = new THREE.TextureLoader(), maxAni = ctx.renderer.capabilities.getMaxAnisotropy();
-    const loadT = f => tl.loadAsync(IGN + f).then(t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = maxAni; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; }).catch(() => null);
+    const loadT = f => tl.loadAsync(Zn.outer.dir + f).then(t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = maxAni; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; }).catch(() => null);
     const HIQ = !LOW && ['HIGH', 'ULTRA'].includes(ctx.level);
     const DSMF = PHOTO + `uniform sampler2D uTile;uniform vec4 rTile;varying vec3 vW;varying vec3 vN;
       void main(){vec3 N=normalize(vN);vec2 tuv=ruv(rTile,vW.xz);
@@ -150,11 +158,54 @@ export async function createAerial(ctx) {
         c=sunlight(c,sunLit(vW+N*1.2)*smoothstep(-.05,.15,dot(N,uSun)+.12),f);
         c*=1.-.3*steep*(1.-clamp(dot(N,uSun)*2.,0.,1.));
         gl_FragColor=vec4(haze(c,vW)*uShow,1.);}`;
+    /* bâtiments BD TOPO : murs d'enduit clair (aucune matière inventée : ni pierre ni brique), toits photographiés ;
+       une maille par dalle d'orthophoto (le toit lit la photo de sa dalle, qui déborde de 20 à 40 m) */
+    const BATF = PHOTO + `uniform sampler2D uTile;uniform vec4 rTile;varying vec3 vW;varying vec3 vN;varying float vK;varying float vG;
+      void main(){vec3 N=normalize(vN);vec2 tuv=ruv(rTile,vW.xz);vec3 c;
+        float sh=sunLit(vW+N*.8),f=clamp(dot(N,uSun),0.,1.);
+        if(vK>.5){c=grade(texture2D(uTile,tuv).rgb);c=sunlight(c,sh*smoothstep(-.05,.15,dot(N,uSun)+.12),clamp(f*2.2+.35,0.,1.));}
+        else{
+          /* l'enduit prend un peu la teinte du quartier (photo très floue) ; pied des murs assombri (occlusion) */
+          vec3 env=texture2D(uTile,tuv,6.).rgb;
+          vec3 wall=mix(vec3(.80,.77,.71),env*1.25,.22);
+          float ao=mix(.55,1.,smoothstep(0.,7.,vG));
+          c=sunlight(grade(wall),sh*step(.02,f),f)*ao*.92;
+        }
+        gl_FragColor=vec4(haze(c,vW)*uShow,1.);}`;
+    const buildBati = async () => {
+      const [buf] = await Promise.all([fetch(Zn.outer.dir + 'bati.bin').then(r => r.ok ? r.arrayBuffer() : null).catch(() => null)]);
+      const bm = Zn.meta.bati; if (!buf || !bm) return;
+      const Pp = new Float32Array(buf, 0, bm.nv * 3), Ii = new Uint32Array(buf, bm.nv * 12, bm.ni), Kk = new Uint8Array(buf, bm.nv * 12 + bm.ni * 4, bm.nv);
+      const groups = tileTex.map(() => ({ P: [], K: [], Gh: [] }));
+      const pick = (x, z) => { let best = -1; for (let i = 0; i < tileTex.length; i++) { const t = tileTex[i]; if (inRect(t.inner, x, z)) { if (t.core) return i; if (best < 0) best = i; } } return best; };
+      const gcache = new Map();
+      for (let t = 0; t < bm.ni; t += 3) {
+        const a = Ii[t], b = Ii[t + 1], c = Ii[t + 2];
+        const cx = (Pp[a * 3] + Pp[b * 3] + Pp[c * 3]) / 3, cz = (Pp[a * 3 + 2] + Pp[b * 3 + 2] + Pp[c * 3 + 2]) / 3;
+        const gi = pick(cx, cz); if (gi < 0) continue;
+        const g = groups[gi];
+        for (const v of [a, b, c]) {
+          const x = Pp[v * 3], y = Pp[v * 3 + 1] - D.pavAlt, z = Pp[v * 3 + 2];
+          g.P.push(x, y, z); g.K.push(Kk[v]);
+          let gh = gcache.get(v); if (gh === undefined) { gh = y - height(x, z); gcache.set(v, gh); } g.Gh.push(gh);
+        }
+      }
+      groups.forEach((g, i) => {
+        if (!g.P.length) return;
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(g.P, 3)); geo.setAttribute('aK', new THREE.Float32BufferAttribute(g.K, 1)); geo.setAttribute('aG', new THREE.Float32BufferAttribute(g.Gh, 1));
+        geo.computeVertexNormals();
+        const t = tileTex[i];
+        const mat = new THREE.ShaderMaterial({ uniforms: Object.assign({}, U, { uTile: { value: t.tex }, rTile: { value: new THREE.Vector4(...t.rect) } }), fog: false, side: THREE.DoubleSide,
+          vertexShader: 'attribute float aK;attribute float aG;varying vec3 vW;varying vec3 vN;varying float vK;varying float vG;void main(){vW=position;vN=normal;vK=aK;vG=aG;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}', fragmentShader: BATF });
+        const m = new THREE.Mesh(geo, mat); m.frustumCulled = false; m.name = 'bati'; G.add(m); dsmMeshes.push(m);
+      });
+    };
     const build = async (Dz, name, stride, hole, hiTex) => {
       const st = Dz.Z.step * stride, zr = Dz.Z.rect;
       await Promise.all(Dz.Z.tiles.map(async t => {
         const tex = await loadT(t.f + (hiTex ? '' : '-m') + '.jpg'); if (!tex) return;
-        const [x0, z0, x1, z1] = t.rect, nx = Math.round((x1 - x0) / st) + 1, nz = Math.round((z1 - z0) / st) + 1;
+        const [x0, z0, x1, z1] = t.inner || t.rect, tr = t.rect, nx = Math.round((x1 - x0) / st) + 1, nz = Math.round((z1 - z0) / st) + 1;
         const P = [], I = [];
         for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const x = x0 + (x1 - x0) * i / (nx - 1), z = z0 + (z1 - z0) * j / (nz - 1); P.push(x, dsmAt(Dz, x, z), z); }
         for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) {
@@ -168,15 +219,21 @@ export async function createAerial(ctx) {
         if (Math.abs(z0 - zr[1]) < 1) edge(row(0)); if (Math.abs(z1 - zr[3]) < 1) edge(row(nz - 1));
         if (Math.abs(x0 - zr[0]) < 1) edge(col(0)); if (Math.abs(x1 - zr[2]) < 1) edge(col(nx - 1));
         const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); geo.setIndex(I); geo.computeVertexNormals();
-        const mat = new THREE.ShaderMaterial({ uniforms: Object.assign({}, U, { uTile: { value: tex }, rTile: { value: new THREE.Vector4(x0, z0, x1, z1) } }), fog: false,
+        const mat = new THREE.ShaderMaterial({ uniforms: Object.assign({}, U, { uTile: { value: tex }, rTile: { value: new THREE.Vector4(...tr) } }), fog: false,
           vertexShader: 'varying vec3 vW;varying vec3 vN;void main(){vW=position;vN=normal;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}', fragmentShader: DSMF });
         const m = new THREE.Mesh(geo, mat); m.frustumCulled = false; m.name = 'mns-' + name; G.add(m); dsmMeshes.push(m);
+        tileTex.push({ tex, inner: [x0, z0, x1, z1], rect: tr, core: name === 'coeur' });
       }));
     };
-    await Promise.all([
-      build(Zn.ville, 'ville', LOW ? 4 : HIQ ? 1 : 2, Zn.pav.Z.rect, HIQ),
-      build(Zn.pav, 'pav', LOW ? 2 : 1, null, !LOW)
+    if (Zn.kind === 'ville') await Promise.all([
+      build(Zn.outer, 'anneau', LOW ? 4 : 2, Zn.inner.Z.rect, !LOW),          /* 4 m (8 m sur mobile) : le sol nu et les arbres */
+      build(Zn.inner, 'coeur', LOW ? 8 : HIQ ? 2 : 4, null, !LOW)             /* 1 à 2 m autour du pavillon */
     ]);
+    else await Promise.all([
+      build(Zn.outer, 'ville', LOW ? 4 : HIQ ? 1 : 2, Zn.inner.Z.rect, HIQ),
+      build(Zn.inner, 'pav', LOW ? 2 : 1, null, !LOW)
+    ]);
+    if (Zn.kind === 'ville') await buildBati();
   }
   /* au-delà des données : une plaine dans le voile, pour qu'aucun bord ne se voie à l'horizon */
   const plain = new THREE.Mesh(new THREE.RingGeometry(2200, 30000, 64, 1), new THREE.ShaderMaterial({
@@ -225,7 +282,7 @@ export async function createAerial(ctx) {
 
   /* carte d'ombre : caméra orthographique alignée sur le soleil, ajustée à la zone survolée (relief et bâtiments en mètres) */
   {
-    const RA = Zn ? Zn.ville.Z.rect : D.a;
+    const RA = Zn ? Zn.outer.Z.rect : D.a;
     const c0 = new THREE.Vector3((RA[0] + RA[2]) / 2, 0, (RA[1] + RA[3]) / 2);
     shCam.position.copy(c0).addScaledVector(SUN, 5000); shCam.up.set(0, 1, 0); shCam.lookAt(c0); shCam.updateMatrixWorld();
     const inv = shCam.matrixWorldInverse, b = new THREE.Box3();

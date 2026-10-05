@@ -425,3 +425,21 @@
 #da-experience.is-live .v2-walk__step.is-on{transition:opacity .6s .25s ease-out,transform .8s .25s cubic-bezier(.2,.8,.2,1)}
 #da-experience.is-live .v2-terr__schema{top:clamp(66px,9vh,96px);bottom:auto;right:var(--gut);left:auto;max-width:min(38vw,460px);text-align:right;font-size:10.5px;color:rgba(201,214,223,.75);text-transform:none;letter-spacing:.02em}
 @media (max-width:760px){#da-experience.is-live .v2-terr__schema{top:auto;bottom:6px;left:var(--gut);right:var(--gut);max-width:none;text-align:left;font-size:9.5px}}
+/* « 600 m² » : chiffre et légende centrés sous la surface de lumière, comme « 3 000+ » */
+#da-experience.is-live .v2-lieu .v2-facts li:nth-child(2){width:max-content;max-width:min(80vw,420px);text-align:center}
+#da-experience.is-live .v2-lieu .v2-facts li:nth-child(2)::before{margin:0 auto 12px}
+#da-experience.is-live .v2-lieu .v2-facts li:nth-child(2) strong{font-variant-numeric:tabular-nums;font-size:clamp(44px,4.6vw,84px)}
+#da-experience.is-live .v2-lieu .v2-facts li:nth-child(2) span{margin:0 auto}
+
+/* ================= IV · formations (bibliothèque 3D) : finitions ================= */
+/* le niveau en filigrane reste, plus petit, au-dessus de la liste : il ne passe plus sous les textes */
+#da-experience.is-live .v2-asc__level{left:auto;right:var(--gut);bottom:auto;top:clamp(84px,13vh,140px);font-size:clamp(64px,9vw,170px);-webkit-text-stroke:1px rgba(255,214,0,.32);text-align:right}
+/* la liste : un panneau de verre (lisible sur les lumières de la bibliothèque) */
+#da-experience.is-live .v2-asc .v2-steps{padding:16px 22px;border-radius:16px;background:rgba(4,8,13,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+#da-experience.is-live .v2-asc .v2-step.is-on .v2-step__btn{font-size:clamp(30px,3vw,52px)}
+#da-experience.is-live .v2-asc .v2-stage::after{width:min(40vw,620px);background:linear-gradient(90deg,rgba(4,8,13,0),rgba(4,8,13,.55) 60%)}
+@media (max-width:760px){
+  #da-experience.is-live .v2-asc__level{display:none}
+  #da-experience.is-live .v2-asc .v2-steps{padding:10px 14px;bottom:44px}
+  #da-experience.is-live .v2-asc .v2-step.is-on .v2-step__btn{font-size:26px}
+}
