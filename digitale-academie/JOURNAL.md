@@ -1,30 +1,7 @@
 # Digitale Académie · « Le Fil » — journal de reprise
 
-## Version 15 : nouvelle direction artistique (refonte radicale)
-
-Retour de la Ville sur la v14 : « aucune direction artistique, moche dès le début ». Diagnostic : dix effets empilés,
-des intérieurs modélisés au rendu de jeu vidéo (cafétéria, bibliothèque à damier, lanternes), un logo qui bave, du texte posé
-n'importe où (jusqu'au titre caché par une tête).
-
-**Direction : deux matières seulement. La vraie photographie, et la lumière dans le noir.** Une couleur signature (jaune),
-le cyan pour le second coach. Ce qui est réel est photographique ; ce qui est merveilleux est lumière ; rien n'est modélisé
-« à l'imitation » d'un lieu réel.
-
-| | Avant (v14) | Maintenant |
-|---|---|---|
-| I Le seuil | façade dès la 1re image, logo posé sur le vrai logo, lignes jaunes | noir → un point → le logo → il se défait vers les fenêtres qu'il allume → la façade émerge → approche continue → porte |
-| II Le lieu | cafétéria modélisée, fibre au sol | le noir : « 3 000+ » → « 600 m² » → « 2 », deux lucioles (une seule matière) |
-| III La visite | 2 salles modélisées + 3 photos | les 3 vraies salles seulement ; 01 et 02 nommées en texte (pas de photo publiée) |
-| IV Les savoirs | bibliothèque à damier | tour de lumière : un anneau par niveau, Licence et Bachelor côte à côte, DU à part |
-| V Le chemin | escalier modélisé | le fil monte en spirale, 7 lumières |
-| VI Les veilleurs | lanternes + titre derrière une tête | vraie photo plein cadre, titre lisible sur zone sombre, puis les listes |
-| VII, VIII | — | conservés |
-
-- Moteur réécrit (`main.js`), plus de pavillon / bibliothèque / nuée / abords (`world/` : `realfacade`, `photorooms`, `sky`).
-- Typographie : cartons-titres centrés en début de chapitre (attribut `data-card`), bandeaux en bas à gauche avec filet jaune,
-  un seul texte à la fois, jamais sur un visage.
-- Démarrage : la première image est le noir (comme le film), avec un fil jaune qui respire ; plus d'affiche photo.
-- Mondes séparés (salles, tour) : on y entre par une coupe dans le noir, jamais par un vol au-dessus du vide.
+> **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
+> refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
 ## Version 14 (4 octobre 2026) : « Director's cut », première passe
 

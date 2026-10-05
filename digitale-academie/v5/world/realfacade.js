@@ -100,15 +100,13 @@ export async function createRealFacade(ctx, { door }) {
     uWin1: { value: [[220, 628, 355, 768], [475, 626, 613, 766], [668, 632, 690, 758], [700, 636, 716, 758], [762, 645, 870, 752], [945, 637, 1043, 752], [1185, 597, 1347, 766], [1485, 597, 1560, 766], [1082, 640, 1110, 758]].map(r => new THREE.Vector4(...r)) },
     uWin2: { value: [[122, 385, 362, 658], [488, 398, 582, 650], [636, 415, 690, 612], [768, 430, 856, 605], [858, 430, 938, 605], [1062, 418, 1222, 612], [1285, 410, 1305, 580], [1330, 395, 1360, 590], [1410, 320, 1460, 560], [1655, 295, 1800, 500], [1062, 418, 1222, 612]].map(r => new THREE.Vector4(...r)) },
     uLamp: { value: [[157, 255], [1582, 332], [1338, 435]].map(p => new THREE.Vector2(...p)) },
-    uD1: { value: null }, uD2: { value: null }, uShadow: { value: 0 },
-    /* volume intérieur du module d'entrée (x0, x1, z de la façade, hauteur) : derrière la porte, le noir */
-    uInside: { value: new THREE.Vector4(0, 0, 0, -1) }
+    uD1: { value: null }, uD2: { value: null }, uShadow: { value: 0 }
   };
   const projMat = (fallback, minFace = .02) => new THREE.ShaderMaterial({
     uniforms: { ...U, uFall: { value: new THREE.Color(fallback) }, uMinFace: { value: minFace } },
     vertexShader: `varying vec3 vW;varying vec3 vN;void main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;vN=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*w;}`,
     fragmentShader: `uniform sampler2D uMap;uniform mat4 uPV;uniform vec3 uProj,uTint,uFall;uniform float uExpo,uSat,uFade,uNight,uMinFace,uMix2;uniform sampler2D uMap2;uniform mat4 uPV2;uniform vec3 uProj2;varying vec3 vW;varying vec3 vN;
-      uniform vec4 uInside;uniform float uLights;uniform vec4 uWin1[9];uniform vec4 uWin2[11];uniform vec2 uLamp[3];
+      uniform float uLights;uniform vec4 uWin1[9];uniform vec4 uWin2[11];uniform vec2 uLamp[3];
       float rectM(vec2 p,vec4 r){vec2 a=smoothstep(r.xy-2.,r.xy+2.,p)*(1.-smoothstep(r.zw-2.,r.zw+2.,p));return a.x*a.y;}
       /* ombre du projecteur : une surface cachée à l'appareil photo ne reçoit pas sa photo (plus de bornes fantômes au sol) */
       uniform sampler2D uD1,uD2;uniform float uShadow;
@@ -144,14 +142,11 @@ export async function createRealFacade(ctx, { door }) {
           float a1=k*(1.-k2),lum=mix(l,l2,k2/(a1+k2+.001));
           /* montants blancs (clairs sur la photo) : ils restent en silhouette ; le verre garde les nuances de ses reflets */
           float win=min(1.,w1*a1+w2*k2)*(1.-smoothstep(.5,.7,lum))*(.35+lum*1.4);
-          /* la vitre éclairée de l'intérieur garde le détail de la photo (reflets, montants, rideaux) : jamais un aplat */
-          vec3 raw=texture2D(uMap,uv).rgb;
-          col=col*(1.-.6*min(1.,win)*uLights)+(vec3(1.,.64,.3)*.55+raw*vec3(1.25,.8,.42)*1.6)*win*uLights;
+          col=col*(1.-.6*min(1.,win)*uLights)+vec3(1.,.64,.3)*win*uLights*1.15;
           float g=0.;
           for(int i=0;i<3;i++){vec2 d=p1-uLamp[i];float r2=dot(d,d);g+=exp(-r2/500.)*1.6+exp(-r2/9000.)*.35;}
           col+=vec3(1.,.78,.5)*g*a1*uLights;
         }
-        if(uInside.w>0.&&vW.z<uInside.z&&vW.x>uInside.x&&vW.x<uInside.y&&vW.y<uInside.w)col=vec3(0.);
         gl_FragColor=vec4(col,1.);}`
   });
   const mWall = projMat('#D9DCDF'), mGround = projMat('#4E5A44', -.4), mBack = projMat('#C8CCD1');
@@ -178,8 +173,7 @@ export async function createRealFacade(ctx, { door }) {
   add(new THREE.BoxGeometry(R1.x - B.x, .3, DEPTH), mWall, P(new THREE.Vector3((B.x + R1.x) / 2, hE + .15, zE - DEPTH / 2)));   /* toit du module d'entrée */
   entPiece(B.x, dl, 0, hE); entPiece(dr, R1.x, 0, hE); entPiece(dl, dr, dh, hE);
   /* vantaux : photo projetée tant qu'ils sont fermés, verre quand ils s'ouvrent */
-  /* vitrage de nuit : presque aucun reflet de l'environnement (sinon un voile blanc devant la lumière) */
-  const glass = new THREE.MeshPhysicalMaterial({ color: '#3C4650', roughness: .08, metalness: .1, transparent: true, opacity: .16, envMapIntensity: .12, depthWrite: false });
+  const glass = new THREE.MeshPhysicalMaterial({ color: '#7E8E9A', roughness: .05, metalness: .1, transparent: true, opacity: .22, envMapIntensity: 1.5, depthWrite: false });
   const alu = new THREE.MeshStandardMaterial({ color: '#9EA4AA', roughness: .45, metalness: .6 });
   const leaves = [[dl, (dl + dr) / 2, dl, 1], [(dl + dr) / 2, dr, dr, -1]].map(([a, b, hinge, dir]) => {
     const pivot = new THREE.Group(); pivot.position.copy(P(new THREE.Vector3(hinge, 0, zE + .01))); G.add(pivot);
@@ -205,7 +199,6 @@ export async function createRealFacade(ctx, { door }) {
   const ZB = -95, hB = 2 * Math.tan(THREE.MathUtils.degToRad(pc.fov / 2)) * Math.abs(ZB) * 1.25;
   const back = add(new THREE.PlaneGeometry(hB * 1.6, hB), mBack, P(new THREE.Vector3(Math.tan(pc.rotation.y) * ZB, 1.6 - Math.tan(pc.rotation.x) * ZB, ZB)));
 
-  U.uInside.value.set(B.x + T.x - 25, R1.x + T.x + 25, zE + T.z - .03, -1);   /* activé près de la porte seulement (w = hauteur) */
   /* points mesurés sur la photo (à calculer AVANT de recaler le projecteur) */
   const LOGO = P(atZ(905, 645, zE)).add(new THREE.Vector3(0, 0, .05)), SIGN = P(atZ(995, 605, zE));
   const PATH = { x: P(onGround(957, 1334)).x, z0: P(onGround(957, 1334)).z, z1: P(onGround(957, 790)).z };
@@ -237,7 +230,7 @@ export async function createRealFacade(ctx, { door }) {
 
   ctx.scene.add(G);
   return {
-    group: G, entrance: ent, leaves, U, backdrop: back, debug: { pc, ray, onGround, atZ, T, doorPhoto, zE, zL, zR, cam2, rms2, params2: best.x, hL: fit.hL0 },
+    group: G, entrance: ent, leaves, U, debug: { pc, ray, onGround, atZ, T, doorPhoto, zE, zL, zR, cam2, rms2, params2: best.x, hL: fit.hL0 },
     viewpoint2: cam2.position.clone(), forward2, fov2: cam2.fov,
     /* proximité de la seconde photo : 0 = hiver (photo lointaine), 1 = automne (photo proche) */
     season(k) { U.uMix2.value = k; },

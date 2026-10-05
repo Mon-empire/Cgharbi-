@@ -101,7 +101,7 @@ export async function createPhotoRooms(ctx) {
           vec2 uv=vec2(px.x/uWH.x,1.-px.y/uWH.y);vec2 e=min(uv,1.-uv);float inside=smoothstep(-.01,.01,min(e.x,e.y));
           vec3 c=texture2D(uMap,clamp(uv,.001,.999)).rgb*mix(.35,1.,inside);
           float l=dot(c,vec3(.299,.587,.114));
-          vec3 off=vec3(l)*vec3(.012,.016,.028);
+          vec3 off=vec3(l)*vec3(.05,.07,.12);
           gl_FragColor=vec4(mix(off,c*uExpo,uLight),1.);}`
     });
     const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false;
