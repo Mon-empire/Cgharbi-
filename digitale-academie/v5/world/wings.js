@@ -123,3 +123,38 @@ export function createStreaks(ctx) {
     }
   };
 }
+
+/*
+  Poussière dans la lumière : des grains en suspension autour de l'œil, qui ne s'allument que dans la lumière rasante
+  (diffusion vers l'avant : plus on regarde vers le soleil, plus ils brillent). Ils dérivent lentement, sans jamais
+  former d'aplat : chacun est un point doux de quelques pixels.
+*/
+export function createDust(ctx) {
+  const { THREE } = ctx;
+  const N = ctx.mobile ? 220 : 600, B = 7;
+  const p = new Float32Array(N * 3), r = new Float32Array(N);
+  for (let i = 0; i < N; i++) { p.set([(Math.random() - .5) * B * 2, (Math.random() - .5) * B, -Math.random() * B * 2.2], i * 3); r[i] = Math.random(); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3)); g.setAttribute('aR', new THREE.BufferAttribute(r, 1));
+  const U = { uT: { value: 0 }, uAmt: { value: 0 }, uSunV: { value: new THREE.Vector3(0, 0, -1) }, uPix: { value: ctx.renderer.getPixelRatio() } };
+  const pts = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: U, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false,
+    vertexShader: `uniform float uT,uPix;attribute float aR;varying float vA;varying float vS;uniform vec3 uSunV;
+      void main(){vec3 q=position;q.x+=sin(uT*.21+aR*40.)*.35;q.y+=sin(uT*.17+aR*23.)*.25+mod(uT*.05*(.3+aR),1.)*.4;q.z+=cos(uT*.13+aR*31.)*.3;
+        vec4 mv=modelViewMatrix*vec4(q,1.);gl_Position=projectionMatrix*mv;
+        float d=-mv.z;gl_PointSize=min(uPix*7.,uPix*(1.2+aR*2.)*(2.4/max(.6,d)));
+        vS=pow(max(dot(normalize(mv.xyz),uSunV),0.),2.);vA=smoothstep(.3,1.,d)*(1.-smoothstep(9.,15.,d))*(.35+.65*fract(aR*7.3));}`,
+    fragmentShader: `uniform float uAmt;varying float vA;varying float vS;
+      void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;float a=(1.-smoothstep(0.,.5,r));
+        gl_FragColor=vec4(vec3(1.,.78,.48)*a*vA*uAmt*(.25+1.6*vS),1.);}`
+  }));
+  pts.frustumCulled = false; pts.renderOrder = 19;
+  const tv = new THREE.Vector3();
+  return {
+    group: pts,
+    /* amt 0..1 ; sunWorld : direction du soleil (monde) */
+    update(t, amt, sunWorld) {
+      U.uT.value = t; U.uAmt.value = amt; pts.visible = amt > .003;
+      if (sunWorld) U.uSunV.value.copy(tv.copy(sunWorld).transformDirection(ctx.camera.matrixWorldInverse));
+    }
+  };
+}

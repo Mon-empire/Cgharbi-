@@ -3,6 +3,20 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.4 (5 octobre 2026) : l'heure dorée (brief « jeu AAA »)
+Brief demandé : rendu cinématique de jeu AAA, heure dorée, ombres longues et douces, poussière volumétrique, netteté.
+Appliqué à l'ouverture **sans rien inventer** (pas de pierres ni de briques : le pavillon et Surville sont modernes).
+- Soleil couchant à l'ouest, 10° au-dessus de l'horizon. **Ombres réelles** : carte d'ombre (4096×2048, 2048×1024 sur
+  mobile) rendue une fois au chargement à partir du relief et des 6 003 bâtiments ; filtrage doux (PCF 5×5 / 3×3).
+  Les tours de Surville projettent leurs ombres sur des centaines de mètres.
+- **Rayons volumétriques** : le voile atmosphérique est calculé le long du regard à travers la carte d'ombre
+  (14 / 10 / 6 pas selon la qualité) : l'air à l'ombre des tours reste sombre, l'air au soleil s'embrase.
+- Étalonnage « heure dorée » : ombres bleutées, lumières ambrées ; ciel et nuages dorés côté soleil.
+- **Poussière en suspension** (points doux, diffusion vers l'avant) dans le ciel et dans l'allée ; plus brillante en
+  regardant vers la lumière (la porte, dans l'allée).
+- L'allée passe à la même lumière (teinte dorée, presque plus de nuit) ; image plus nette à l'ouverture
+  (accentuation légère, plus de halo « rêve »).
+
 ## Version 14.3 (5 octobre 2026) : le vrai Montereau vu du ciel
 La maquette de lumière ne sert plus à l'ouverture (elle reste au chapitre VII). L'oiseau survole la **vraie ville** :
 - **Orthophotographies IGN** (BD ORTHO, Licence ouverte Etalab 2.0), trois niveaux emboîtés : la région à 5,3 m/pixel,

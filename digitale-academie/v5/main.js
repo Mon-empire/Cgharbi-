@@ -108,10 +108,10 @@ async function start() {
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .5, .5, .9); composer.addPass(bloom);
   const fx = new ShaderPass({
-    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uFade: { value: 1 }, uCA: { value: .0007 }, uDream: { value: .5 }, uWhite: { value: 0 }, uBlack: { value: 0 }, uRad: { value: 0 }, uWhiteC: { value: new THREE.Vector3(.9, .93, .97) } },
+    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uFade: { value: 1 }, uCA: { value: .0007 }, uDream: { value: .5 }, uSharp: { value: 0 }, uWhite: { value: 0 }, uBlack: { value: 0 }, uRad: { value: 0 }, uWhiteC: { value: new THREE.Vector3(.9, .93, .97) } },
     vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     /* rendu de rêve : léger halo diffus, aberration sur les bords, vignette, grain fin */
-    fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uFade,uCA,uDream,uWhite,uBlack,uRad;uniform vec3 uWhiteC;varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uFade,uCA,uDream,uSharp,uWhite,uBlack,uRad;uniform vec3 uWhiteC;varying vec2 vUv;
       float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
       void main(){vec2 d=vUv-.5;float r=dot(d,d);vec2 o=d*uCA*(1.+r*6.);
         vec3 c=vec3(texture2D(tDiffuse,vUv+o).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-o).b);
@@ -119,6 +119,8 @@ async function start() {
         if(uRad>.0005){vec3 acc=c;for(int i=1;i<7;i++){acc+=texture2D(tDiffuse,vUv-d*uRad*float(i)*(.4+r*4.)).rgb;}c=acc/7.;}
         vec3 soft=(texture2D(tDiffuse,vUv+vec2(.004,0.)).rgb+texture2D(tDiffuse,vUv-vec2(.004,0.)).rgb+texture2D(tDiffuse,vUv+vec2(0.,.005)).rgb+texture2D(tDiffuse,vUv-vec2(0.,.005)).rgb)*.25;
         c=mix(c,max(c,soft),uDream*.18);
+        /* netteté : accentuation douce des détails (ouverture) */
+        c+=(c-soft)*uSharp;
         /* bourrasque de neige : l'image blanchit, avec un voile qui dérive */
         float fl=h(floor(vUv*vec2(160.,90.)+vec2(0.,uTime*30.)));c=mix(c,uWhiteC+fl*.05,uWhite*(.85+.15*smoothstep(.2,.9,uWhite)));
         c*=1.-r*1.1;c+=(h(vUv*vec2(1123.,987.)+fract(uTime*7.))-.5)*.018;c*=(1.-uFade)*(1.-uBlack);gl_FragColor=vec4(c,1.);}`
@@ -248,9 +250,9 @@ async function start() {
   /* le vrai Montereau vu du ciel (orthophotos IGN, relief réel, bâtiments OSM) */
   const { createAerial } = await import('./world/aerial.js');
   const aerial = await createAerial(ctx);
-  const { createWings, createStreaks } = await import('./world/wings.js');
-  const wings = createWings(ctx, await tex('aile-goeland.png')), streaks = createStreaks(ctx);
-  camera.add(wings.group, streaks.group); scene.add(camera);
+  const { createWings, createStreaks, createDust } = await import('./world/wings.js');
+  const wings = createWings(ctx, await tex('aile-goeland.png')), streaks = createStreaks(ctx), dustMotes = createDust(ctx);
+  camera.add(wings.group, streaks.group, dustMotes.group); scene.add(camera);
   const renderMural = () => library.renderMural(renderer, scene, [pavilion.group, surville.group, real.group]);
 
   /* ---------- prologue : logo en particules qui se pose sur le vrai logo de la façade ---------- */
@@ -403,6 +405,7 @@ async function start() {
   const probe = { n: 0, sum: 0, drops: 0 };
   const camPos = new THREE.Vector3(.6, 1.75, 34), look = new THREE.Vector3(1.4, 2.2, -2), tmpP = new THREE.Vector3(), tmpL = new THREE.Vector3();
   const prevCam = new THREE.Vector3(), tmpV = new THREE.Vector3(), tmpF = new THREE.Vector3(), tmpR = new THREE.Vector3();
+  const tmpD = new THREE.Vector3();
   let bank = 0, speed = 0, lastCut = '', lastHard = false, diveSaid = false, landSaid = false, flightSnd = { wind: -1, bright: 0, at: 0 };
   wings.onBeat = k => { if (current === 'hero') cue('aile', k); };
   const BL = .18;   /* part de chaque chapitre consacrée au raccord de caméra avec le précédent */
@@ -440,7 +443,8 @@ async function start() {
     sky3.update(t, dusk);
     /* lumière réelle de la nuit d'hiver → aube */
     moon.intensity = lerp(.35, 1.5, dusk); hemi.intensity = lerp(.18, .7, dusk); scene.environmentIntensity = lerp(.14, .55, dusk);
-    fx.uniforms.uTime.value = t; fx.uniforms.uBlack.value = 0; fx.uniforms.uRad.value = 0; bloom.threshold = .9; bloom.strength = .5;
+    fx.uniforms.uTime.value = t; fx.uniforms.uBlack.value = 0; fx.uniforms.uRad.value = 0;
+    fx.uniforms.uDream.value = center === 'hero' ? 0 : .5; fx.uniforms.uSharp.value = center === 'hero' ? .22 : 0; bloom.threshold = .9; bloom.strength = .5;
     pavilion.power(1); photoRooms.group.visible = false;
     fade = damp(fade, 0, 2.2, dt); fx.uniforms.uFade.value = fade;
 
@@ -492,12 +496,14 @@ async function start() {
       real.update(camera.position);
       /* heure : matin d'hiver de la photo, puis lumière dorée de l'aube au final */
       /* ouverture : nuit de neige, le pavillon allumé ; le jour se lève quand on avance. Final : l'heure bleue, tout se rallume */
-      const nightK = center === 'hero' ? .45 * (1 - ss(.04, .3, p)) : center === 'finale' ? ss(.05, .5, pc) : 0;
+      const nightK = center === 'hero' ? .22 * (1 - ss(.04, .3, p)) : center === 'finale' ? ss(.05, .5, pc) : 0;
       const blue = center === 'finale';
       real.grade({
         expo: lerp(1, blue ? .66 : .6, nightK), sat: lerp(1, blue ? .85 : .7, nightK), night: (blue ? .5 : .9) * nightK,
-        tint: [lerp(1, .82, nightK), lerp(1, .9, nightK), lerp(1, 1.12, nightK)], lights: blue ? ss(.2, .6, pc) : nightK
+        tint: [lerp(1, .82, nightK) * (center === 'hero' ? 1.13 : 1), lerp(1, .9, nightK) * (center === 'hero' ? 1.01 : 1), lerp(1, 1.12, nightK) * (center === 'hero' ? .8 : 1)], lights: blue ? ss(.2, .6, pc) : nightK
       });
+      /* l'heure dorée continue dans l'allée : poussière en suspension, qui brille quand on regarde vers la lumière de la porte */
+      dustMotes.update(t, center === 'hero' ? (sky ? .45 : .9 * (1 - ss(.9, 1, p))) : 0, sky ? aerial.sun : tmpD.copy(pavilion.door).sub(camera.position).setY(1.2).normalize());
       /* la porte s'ouvre sur la lumière chaude de l'intérieur ; au final elle se rouvre pour toi */
       const openK = center === 'hero' ? ss(.72, .9, p) : center === 'finale' ? ss(.35, .7, pc) : 1;
       real.open(openK);
