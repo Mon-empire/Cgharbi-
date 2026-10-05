@@ -1,0 +1,28 @@
+# Données ouvertes IGN pour l'expérience Digitale Académie (Montereau-Fault-Yonne).
+# Lancé quand le script de sonde ou de préparation change sur la branche de travail ; repousse les résultats.
+name: Données IGN Montereau
+on:
+  push:
+    branches: [claude/digitale-academie-refonte-cphasb]
+    paths: ['digitale-academie/build/ign/*.py']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  ign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install numpy pillow pyproj laspy[lazrs] scipy
+      - run: python digitale-academie/build/ign/probe.py
+      - run: |
+          if [ -f digitale-academie/build/ign/build.py ]; then python digitale-academie/build/ign/build.py; fi
+      - name: Repousser les résultats
+        run: |
+          git config user.name "ign-data-bot"; git config user.email "ign-data-bot@users.noreply.github.com"
+          git add digitale-academie/build/ign/out digitale-academie/v5/assets || true
+          git commit -m "Données IGN : résultats du workflow [skip ci]" || echo "rien à commiter"
+          git push
