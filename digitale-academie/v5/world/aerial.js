@@ -350,12 +350,12 @@ export async function createAerial(ctx) {
     V(880, 420, 1300),     /* on tourne autour du confluent et de la vieille ville */
     V(860, 270, 760),
     V(560, 200, 380),      /* on remonte vers Surville */
-    V(280, 150, 60),
-    V(110, 115, -190),     /* on tourne autour du pavillon */
-    V(-150, 90, -150),
-    V(-170, 70, 70),
-    V(-40, 55, 150),
-    V(0, 42, 80)           /* face au pavillon, on plonge dans le faisceau */
+    V(300, 230, 80),
+    V(140, 220, -230),     /* on tourne autour du pavillon, assez haut pour que la ville reste photographique */
+    V(-200, 200, -190),
+    V(-240, 180, 90),
+    V(-60, 160, 230),
+    V(0, 120, 120)         /* face au pavillon, on plonge dans le faisceau */
   ], false, 'centripetal');
   const CONF = V(170, -66, 1000), PAV = V(0, 4, 0);
   const cam2 = k => {
@@ -374,7 +374,7 @@ export async function createAerial(ctx) {
   beam.position.set(0, height(0, 0) + 210, 0); beam.visible = false; G.add(beam);
   /* le fil d'or : du confluent jusqu'au pavillon, posé sur la vraie surface */
   const filPts = new THREE.CatmullRomCurve3([V(185, 0, 960), V(212, 0, 890), V(310, 0, 700), V(270, 0, 450), V(130, 0, 210), V(0, 0, 0)]).getSpacedPoints(400);
-  const fP = [], fI = [], FW = 3.2;
+  const fP = [], fI = [], FW = 1.3;
   filPts.forEach((q, i) => {
     const n = filPts[Math.min(filPts.length - 1, i + 1)].clone().sub(filPts[Math.max(0, i - 1)]).setY(0).normalize(), sd = V(-n.z, 0, n.x);
     const y = height(q.x, q.z) + 3;
@@ -382,7 +382,7 @@ export async function createAerial(ctx) {
     if (i) { const a = (i - 1) * 2; fI.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
   });
   const filGeo = new THREE.BufferGeometry(); filGeo.setAttribute('position', new THREE.Float32BufferAttribute(fP, 3)); filGeo.setIndex(fI);
-  const fil = new THREE.Mesh(filGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color('#FFD600').multiplyScalar(2.2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }));
+  const fil = new THREE.Mesh(filGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color('#FFD600').multiplyScalar(1.6), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }));
   fil.visible = false; fil.frustumCulled = false; G.add(fil);
   const terr = (k, t, on) => {
     beam.visible = fil.visible = on; if (!on) return;
