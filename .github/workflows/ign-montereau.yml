@@ -4,7 +4,7 @@ name: Données IGN Montereau
 on:
   push:
     branches: [claude/digitale-academie-refonte-cphasb]
-    paths: ['digitale-academie/build/ign/*.py']
+    paths: ['digitale-academie/build/ign/*.py', '.github/workflows/ign-montereau.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -27,4 +27,6 @@ jobs:
           git config user.name "ign-data-bot"; git config user.email "ign-data-bot@users.noreply.github.com"
           git add digitale-academie/build/ign/out digitale-academie/v5/assets || true
           git commit -m "Données IGN : résultats du workflow [skip ci]" || echo "rien à commiter"
-          for k in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
+          set +e
+          for k in 1 2 3 4 5 6; do git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep $((k * 7)); done
+          exit 1
