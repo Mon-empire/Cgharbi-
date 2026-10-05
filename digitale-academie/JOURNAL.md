@@ -3,6 +3,22 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.8 (5 octobre 2026) : retour à la bibliothèque 3D, la vraie ville au détail près, « 600 m² »
+Retour de la Ville : la bibliothèque photographique (14.7) est refusée → **retour à la bibliothèque 3D précédente**
+(Formations, Parcours, Accompagnement), avec finitions seulement (niveau en filigrane discret, liste sur panneau de verre,
+mobile : un soutien à la fois). Photos Peabody et `depthshot.js` retirés de la livraison (restent dans l'historique git).
+
+**La ville, 2 km autour du pavillon** (`build/ign/ville3d.py`, `bati_compact.py`, `route.py` via GitHub Actions ;
+`v5/assets/ville/`) : 6 883 bâtiments BD TOPO extrudés à leur emprise exacte, toits relevés dans le MNS LiDAR (pignons,
+terrasses) puis simplifiés (contours préservés) ; sol nu RGE ALTI sous les bâtiments, MNS ailleurs (arbres, ponts, talus) ;
+orthophotos 0,5 m (anneau) et 0,2 m (cœur, Surville) ; murs d'enduit clair (aucune matière inventée) ; eau : reflet du
+ciel et scintillement du soleil. Vol relevé à 70 m au-dessus des arbres et toits (150–200 m sur les quartiers).
+Fil d'or de « Nous trouver » : plus court chemin OSM du pont de Seine à la rue Honoré de Balzac. Repère « Surville »
+retiré (position non sourcée).
+
+**II · Le lieu, « 600 m² »** : les 3 000 points se rangent en 30 × 20 cases d'un mètre carré ; la fibre les relie en
+vague, le compteur monte jusqu'à 600 ; chiffre et légende centrés sous la surface ; les lucioles s'en détachent.
+
 ## Version 14.7 (5 octobre 2026) : vraie 3D de Montereau, vraie bibliothèque, clarté
 Retour de la Ville : « niveau médiocre », pas reconnaissable, pas cinématographique, intérieur confus, bibliothèque sous-exploitée,
 survol final « pas mon trop », mobile difficile. Feu vert sur tous les outils ; pas de clé Google (alternative gratuite demandée).
