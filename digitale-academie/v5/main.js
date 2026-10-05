@@ -216,7 +216,7 @@ async function start() {
   const [{ createSky }, { createPavilion }, { createSurville }, { createLibrary }, { createRealFacade }] = await Promise.all([
     import('./world/sky.js'), import('./world/pavilion.js'), import('./world/surville.js'), import('./world/library.js'), import('./world/realfacade.js')
   ]);
-  const sky = createSky(ctx);
+  const sky3 = createSky(ctx);
   const pavilion = await createPavilion(ctx);
   const surville = await createSurville(ctx);
   surville.group.visible = false;                       /* les abords modélisés cèdent la place à la vraie photo */
@@ -245,6 +245,9 @@ async function start() {
   const photoRooms = await createPhotoRooms(ctx);
   ctx.photoRooms = photoRooms;
   /* on est l'oiseau : ses ailes et son dos, attachés à la caméra */
+  /* le vrai Montereau vu du ciel (orthophotos IGN, relief réel, bâtiments OSM) */
+  const { createAerial } = await import('./world/aerial.js');
+  const aerial = await createAerial(ctx);
   const { createWings, createStreaks } = await import('./world/wings.js');
   const wings = createWings(ctx, await tex('aile-goeland.png')), streaks = createStreaks(ctx);
   camera.add(wings.group, streaks.group); scene.add(camera);
@@ -277,27 +280,15 @@ async function start() {
      de l'allée réelle : le plan-séquence d'origine, qu'on vole jusqu'à se poser devant la porte ---------- */
   const SKY = .43;                                              /* part du chapitre consacrée au vol au-dessus de la ville */
   const heroV = p => clamp((p - SKY) / (1 - SKY), 0, 1);        /* progression du plan-séquence (le seuil d'origine) */
-  let skyPath = null;
-  const tv = new THREE.Vector3(), tw = new THREE.Vector3();
   const skyCam = (k, m) => {
-    const F = ctx.flight, pav = F.pav;
-    if (!skyPath || skyPath.userData !== F.ready) {
-      /* en mètres réels autour du pavillon (x est, z sud) ; altitude en unités de maquette (25 m) au-dessus du pavillon */
-      const P = (x, y, z) => F.P(x, y, z).add(new THREE.Vector3(0, pav.y - F.P(0, 0, 0).y, 0));
-      skyPath = new THREE.CatmullRomCurve3([P(-1150, 32, 1750), P(-720, 25, 1050), P(-330, 18, 400), P(20, 11, -260), P(110, 7, -560)], false, 'centripetal');
-      skyPath.userData = F.ready;
-    }
-    const pos = skyPath.getPointAt(k);
-    /* le regard de l'oiseau : vers le pavillon, plongeant d'environ 45° tant qu'il est haut, puis droit sur sa cible */
-    const h = pos.y - pav.y, d = tv.set(pav.x - pos.x, 0, pav.z - pos.z), dist = d.length();
-    const look = tw.copy(pos).addScaledVector(d.normalize(), Math.min(dist, Math.max(6, h * 1.05))); look.y = pav.y;
-    pos.x += m.sx * 1.5; pos.y += m.sy * .8;
-    return { pos, look: look.clone(), cut: 'ciel', hard: true, fov: camera.aspect < 1 ? 64 : 52 };
+    const c = aerial.cam(k);
+    c.pos.x += m.sx * 1.2; c.pos.y += m.sy * .6;
+    return { pos: c.pos, look: c.look, cut: 'ciel', hard: true, fov: camera.aspect < 1 ? 62 : 50 };
   };
   const heroScene = {
     cam(p0, m) {
       /* le ciel : du haut de la nuit jusqu'à la plongée dans la neige */
-      if (p0 < SKY && ctx.flight) return skyCam(Math.pow(p0 / SKY, 1.3), m);   /* majestueux en haut, de plus en plus vite dans la plongée */
+      if (p0 < SKY) return skyCam(p0 / SKY, m);
       const p = heroV(p0);
       /* hiver : on entre de quelques pas dans la photo de 2019 ; une bourrasque de neige blanchit l'image (p ≈ .33) ;
          quand elle se dissipe, c'est l'automne, devant l'entrée (photo prise de là) ; puis le seuil */
@@ -317,8 +308,8 @@ async function start() {
   const beats = (k, a, b) => ss(a, a + .03, k) * (1 - ss(b - .03, b, k));
   const wingState = p0 => {
     if (p0 < SKY) {
-      const k = p0 / SKY, dive = ss(.58, .74, k);
-      return { flap: (.7 * Math.max(beats(k, 0, .16), beats(k, .3, .44)) + .3) * (1 - dive), freq: 2.1, gust: .25 + .6 * dive, fold: .55 * dive, bank: bank * 1.5 };
+      const k = p0 / SKY, dive = ss(.84, .95, k);
+      return { flap: (.7 * Math.max(beats(k, 0, .14), beats(k, .46, .58)) + .25) * (1 - dive), freq: 2.1, gust: .25 + .6 * dive, fold: .55 * dive, bank: bank * 1.5 };
     }
     const p = heroV(p0), flare = ss(.4, .56, p), fold = ss(.56, .66, p);   /* posé et ailes repliées avant que le slogan ne monte */
     return { flap: .7 * Math.max(beats(p, 0, .14), beats(p, .3, .38)) + .1 + .45 * flare * (1 - fold), freq: 2.2 + .9 * flare, gust: .3 * (1 - flare), flare, fold: Math.max(fold, p0 >= 1 ? 1 : 0), bank: bank * 1.5 };
@@ -382,7 +373,7 @@ async function start() {
   const split = el => { const s = document.createElement('span'); s.textContent = el.textContent; el.textContent = ''; el.appendChild(s); return s; };
   const h1 = split(R.querySelector('.v2-hero__l1')), h2 = split(R.querySelector('.v2-hero__l2'));
   const q = s => R.querySelector(s);
-  const heroEls = { kicker: q('.v2-kicker'), sub: q('.v2-hero__sub'), hint: q('.v2-scroll') };
+  const heroEls = { kicker: q('.v2-kicker'), sub: q('.v2-hero__sub'), hint: q('.v2-scroll'), src: q('.v2-hero__src') };
 
   R.classList.add('is-live');
   renderMural();
@@ -417,7 +408,7 @@ async function start() {
   const BL = .18;   /* part de chaque chapitre consacrée au raccord de caméra avec le précédent */
   const DUSK = { hero: .45, lieu: .45, campus: .1, asc: .2, walk: .3, human: .4, terr: .65, finale: 1 };
   window.__v2 = { get state() { return { current, level, cam: camera.position.toArray().map(v => +v.toFixed(1)), p: Object.fromEntries(chapters.map(c => [c.id, +c.p.toFixed(3)])) }; } };
-  window.__v2.scenes = SC; window.__v2.flight = ctx.flight; window.__v2.real = real; window.__v2.camera = camera; window.__v2.flock = flock;
+  window.__v2.scenes = SC; window.__v2.aerial = aerial; window.__v2.real = real; window.__v2.camera = camera; window.__v2.flock = flock;
   let last = performance.now(), virt = 0;
   window.__v2.settle = (n = 60) => { for (let i = 0; i < n; i++) { virt += 16.7; tick(performance.now() + virt); } };
   function frame(now) { requestAnimationFrame(frame); tick(now + virt); }
@@ -446,7 +437,7 @@ async function start() {
     /* heure : nuit de pluie → aube */
     const nextId = chapters[Math.min(chapters.length - 1, ci + 1)].id;
     const dusk = lerp(DUSK[center] ?? 0, DUSK[nextId] ?? 0, ss(.7, 1, pc));
-    sky.update(t, dusk);
+    sky3.update(t, dusk);
     /* lumière réelle de la nuit d'hiver → aube */
     moon.intensity = lerp(.35, 1.5, dusk); hemi.intensity = lerp(.18, .7, dusk); scene.environmentIntensity = lerp(.14, .55, dusk);
     fx.uniforms.uTime.value = t; fx.uniforms.uBlack.value = 0; fx.uniforms.uRad.value = 0; bloom.threshold = .9; bloom.strength = .5;
@@ -484,23 +475,24 @@ async function start() {
       if (SC.terr) SC.terr.group.visible = C.terr.vis || (center === 'finale' && pc < BL);
       /* le ciel de l'ouverture : la ville entière en contrebas, le faisceau sur le pavillon s'éteint dans la plongée */
       const sk = pRaw / SKY;
-      if (sky && ctx.flight) ctx.flight.aerial(true, t, 1 - ss(.78, .93, sk));
+      aerial.update(sky, t, camera.position); sky3.group.visible = !sky;
+      moon.color.set(sky ? '#FFE0B8' : '#B9C6FF'); if (sky) { moon.intensity = 2.2; hemi.intensity = .9; }
       /* plongée dans la neige : la nuit se referme (bleu nuit, jamais de blanc), on ressort au ras de l'allée */
-      if (center === 'hero') fx.uniforms.uBlack.value = sky ? ss(.66, .9, sk) : 1 - ss(0, .05, p);
+      if (center === 'hero') fx.uniforms.uBlack.value = sky ? ss(.9, .99, sk) : 1 - ss(0, .04, p);
       /* son du vol : le vent monte avec la vitesse ; un souffle pour la plongée, des battements pour l'atterrissage */
       if (center === 'hero') {
-        const wind = sky ? .5 + .5 * ss(.45, .9, sk) : .55 * (1 - ss(.45, .7, p)), bright = sky ? .25 + .75 * ss(.5, .92, sk) : .2 * (1 - ss(.3, .6, p));
+        const wind = sky ? .5 + .5 * ss(.8, .97, sk) : .55 * (1 - ss(.45, .7, p)), bright = sky ? .25 + .75 * ss(.82, .97, sk) : .2 * (1 - ss(.3, .6, p));
         if (Math.abs(wind - flightSnd.wind) > .03 || Math.abs(bright - flightSnd.bright) > .03 || now - flightSnd.at > 400) { flightSnd = { wind, bright, at: now }; R.dispatchEvent(new CustomEvent('da:flight', { detail: { wind, bright } })); }
-        if (sky && sk > .58 && !diveSaid) { diveSaid = true; cue('plongee'); } if (sky && sk < .4) diveSaid = false;
+        if (sky && sk > .84 && !diveSaid) { diveSaid = true; cue('plongee'); } if (sky && sk < .4) diveSaid = false;
         if (!sky && p > .4 && !landSaid) { landSaid = true; cue('atterrissage'); } if (sky || p < .3) landSaid = false;
-        fx.uniforms.uRad.value = sky ? .022 * ss(.5, .88, sk) : 0;
+        fx.uniforms.uRad.value = sky ? .011 * ss(.9, .985, sk) : 0;
       } else if (flightSnd.wind > 0) { flightSnd = { wind: 0, bright: 0, at: now }; R.dispatchEvent(new CustomEvent('da:flight', { detail: { wind: 0, bright: 0 } })); }
-      wings.light(sky ? .12 : lerp(.14, .5, ss(.25, .55, p)));   /* lune, puis jour d'automne devant la porte */
-      streaks.update(dt, center === 'hero' ? (sky ? .22 + .4 * ss(.5, .85, sk) : .5 * (1 - ss(0, .2, p))) : 0, center === 'hero' ? (sky ? 9 + 16 * ss(.5, .9, sk) : 8 * (1 - ss(0, .3, p)) + 2) : 0);
+      wings.light(sky ? .45 : lerp(.14, .5, ss(.25, .55, p)));   /* lune, puis jour d'automne devant la porte */
+      streaks.update(dt, center === 'hero' ? (sky ? .1 + .35 * ss(.8, .97, sk) : .5 * (1 - ss(0, .2, p))) : 0, center === 'hero' ? (sky ? 9 + 18 * ss(.8, .98, sk) : 8 * (1 - ss(0, .3, p)) + 2) : 0);
       real.update(camera.position);
       /* heure : matin d'hiver de la photo, puis lumière dorée de l'aube au final */
       /* ouverture : nuit de neige, le pavillon allumé ; le jour se lève quand on avance. Final : l'heure bleue, tout se rallume */
-      const nightK = center === 'hero' ? 1 - ss(.04, .3, p) : center === 'finale' ? ss(.05, .5, pc) : 0;
+      const nightK = center === 'hero' ? .45 * (1 - ss(.04, .3, p)) : center === 'finale' ? ss(.05, .5, pc) : 0;
       const blue = center === 'finale';
       real.grade({
         expo: lerp(1, blue ? .66 : .6, nightK), sat: lerp(1, blue ? .85 : .7, nightK), night: (blue ? .5 : .9) * nightK,
@@ -549,6 +541,7 @@ async function start() {
       heroEls.kicker.style.transform = `translate3d(0,${((1 - kIn) * 14 - kOut * 30).toFixed(1)}px,0)`;
       heroEls.kicker.style.letterSpacing = `${(.62 - .2 * kIn).toFixed(3)}em`;
       heroEls.hint.style.opacity = eOut((intro - 3.6) / 1) * (1 - ss(.02, .1, pRaw));
+      if (heroEls.src) heroEls.src.style.opacity = (center === 'hero' ? 1 : 0) * (1 - ss(SKY * .82, SKY * .9, pRaw));
     }
 
     /* ----- chapitres ----- */
@@ -586,7 +579,7 @@ async function start() {
       speed = damp(speed, vel.length(), 4, dt);
     }
     prevCam.copy(camPos); camera.rotateZ(bank);
-    fx.uniforms.uCA.value = .0007 + Math.min(.0016, speed * .0001);
+    fx.uniforms.uCA.value = .0007 + Math.min(center === 'hero' && C.hero.p < SKY ? .0004 : .0016, speed * .0001);
     /* focale : celle de la photo d'hiver au départ (aucun bord visible), puis l'œil normal */
     const baseFov = camera.aspect < 1 ? 60 : 46;
     const tf = tgt.fov && !(ci > 0 && c.p < BL) ? tgt.fov : center === 'hero' ? lerp(fitFov(camera.aspect), baseFov, eIO(ss(.08, .5, heroV(C.hero.p)))) : baseFov;

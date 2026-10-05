@@ -27,7 +27,7 @@ export async function create(ctx, el) {
   const reveal = (n, k, dy = 24) => { if (!n) return; n.style.opacity = k.toFixed(3); n.style.transform = `translate3d(0,${((1 - k) * dy).toFixed(1)}px,0)`; n.style.pointerEvents = k > .5 ? '' : 'none'; };
 
   /* ---------- uniformes partagés ---------- */
-  const SU = { uTime: { value: 0 }, uShow: { value: 0 }, uStreet: { value: 1.8 }, uConf: { value: new THREE.Vector2(CONF.x, CONF.z) } };
+  const SU = { uTime: { value: 0 }, uShow: { value: 0 }, uConf: { value: new THREE.Vector2(CONF.x, CONF.z) } };
   /* rayon d'apparition : distance au confluent, normalisée */
   const REV = 'float revR(vec2 p){return length((p-uConf)/vec2(190.,150.));}';
 
@@ -103,7 +103,7 @@ export async function create(ctx, el) {
     terrainMat = new THREE.ShaderMaterial({
       uniforms: { ...SU, uLight: { value: lightTex }, uWH: { value: new THREE.Vector2(W2, H2) } }, transparent: true, fog: false, extensions: { derivatives: true },
       vertexShader: `varying vec3 vP;varying vec3 vN;void main(){vP=position;vN=normal;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader: `uniform float uTime,uShow,uStreet;uniform vec2 uConf,uWH;uniform sampler2D uLight;varying vec3 vP;varying vec3 vN;${REV}
+      fragmentShader: `uniform float uTime,uShow;uniform vec2 uConf,uWH;uniform sampler2D uLight;varying vec3 vP;varying vec3 vN;${REV}
         void main(){
           float r=revR(vP.xz),front=uShow*1.35;
           float shown=1.-smoothstep(front-.05,front,r);
@@ -113,7 +113,7 @@ export async function create(ctx, el) {
           float c=vP.y/.5;float w=max(fwidth(c),1e-4);float line=1.-smoothstep(0.,w*1.5,abs(fract(c+.5)-.5));
           col+=vec3(.25,.42,.85)*line*.09;
           vec2 uv=vec2((vP.x+uWH.x)/(2.*uWH.x),(vP.z+uWH.y)/(2.*uWH.y));
-          vec3 L=texture2D(uLight,uv).rgb;col+=L*uStreet*shown;
+          vec3 L=texture2D(uLight,uv).rgb;col+=L*1.8*shown;
           col+=vec3(.6,.85,1.)*ring*1.4;
           vec2 e=abs(vP.xz)/uWH;float edge=(1.-smoothstep(.6,1.,e.x))*(1.-smoothstep(.55,1.,e.y));
           float a=edge*shown;if(a<.02)discard;
@@ -286,26 +286,6 @@ export async function create(ctx, el) {
   const camPath = new THREE.CatmullRomCurve3([top.clone(), top.clone().add(V(0, 30, -25)), P(-2600, 150, 4200), P(-3600, 70, 1900), P(-1700, 26, 900), P(-500, 18, 700), P(-450, 22, -300), W(V(PAVm.x - 22, 18, PAVm.z + 20))], false, 'centripetal');
   const lookPath = new THREE.CatmullRomCurve3([top.clone().add(V(0, 40, -40)), P(0, 30, 2000), P(200, 0, 0), P(0, 0, 300), P(189, 0, 155), P(189, 0, 0), P(150, 2, -600), W(V(PAVm.x, 4, PAVm.z))], false, 'centripetal');
 
-  /* ---------- l'ouverture survole aussi cette maquette (on est l'oiseau qui descend du ciel) ---------- */
-  const flight = {
-    P, W, conf: W(V(CONF.x, 0, CONF.z)),
-    /* le pavillon dans le monde (son altitude n'est connue qu'une fois le relief chargé) */
-    get pav() { return W(PAV); }, get ready() { return built; },
-    /* on : la ville entière, allumée, et le faisceau sur le pavillon (le cap de l'oiseau) ; aucun texte */
-    aerial(on, t, beamK = 1) {
-      G.visible = on; if (!on) return;
-      SU.uTime.value = t; SU.uShow.value = 1; SU.uStreet.value = .4;   /* vue d'avion de nuit : l'éclairage public en lueur discrète */
-      /* vu d'en haut, le faisceau n'est qu'une colonne de lumière courte et douce au-dessus du pavillon */
-      beam.scale.y = .3; beam.position.y = PAV.y + 45 * .3;
-      beamMat.uniforms.uTime.value = t; beamMat.uniforms.uI.value = beamK * .55;
-      ring.material.opacity = beamK * (.6 + .4 * Math.sin(t * 3)); ring.scale.setScalar(1 + (t * .6 % 1) * 2.5);
-      core.scale.setScalar(Math.max(.001, beamK * (1 + .15 * Math.sin(t * 4))));
-      if (filGeo) filGeo.setDrawRange(0, 0);
-      tags.forEach(g => g.children.forEach(c => { c.material.opacity = 0; }));
-      title.visible = false;
-    }
-  };
-  ctx.flight = flight;
   return {
     group: G,
     cam(p, m) {
@@ -314,7 +294,7 @@ export async function create(ctx, el) {
     },
     update(p, t, dt, m, isCurrent) {
       const show = ss(.1, .48, p);
-      SU.uTime.value = t; SU.uShow.value = show; SU.uStreet.value = 1.8; beam.scale.y = 1; beam.position.y = PAV.y + 45;
+      SU.uTime.value = t; SU.uShow.value = show;
       beamMat.uniforms.uTime.value = t; beamMat.uniforms.uI.value = ss(.55, .75, p) * (1.2 + .3 * Math.sin(t * 2));
       ring.material.opacity = ss(.6, .75, p) * (.6 + .4 * Math.sin(t * 3)); ring.scale.setScalar(1 + (t * .6 % 1) * 2.5);
       core.scale.setScalar(Math.max(.001, ss(.55, .7, p) * (1 + .15 * Math.sin(t * 4))));

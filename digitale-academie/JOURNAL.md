@@ -3,6 +3,24 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.3 (5 octobre 2026) : le vrai Montereau vu du ciel
+La maquette de lumière ne sert plus à l'ouverture (elle reste au chapitre VII). L'oiseau survole la **vraie ville** :
+- **Orthophotographies IGN** (BD ORTHO, Licence ouverte Etalab 2.0), trois niveaux emboîtés : la région à 5,3 m/pixel,
+  la ville survolée à 0,9 m, les abords du pavillon à 0,32 m (`assets/img/aerien-*.jpg`, versions `-m` pour mobile).
+  L'environnement de travail n'a pas accès à `data.geopf.fr` : les tuiles WMS ont été récupérées par le connecteur
+  ElevenLabs (import d'URL), sans retouche. Requêtes : `build/aerien.py` (emprises EPSG:3857 en tête du fichier).
+- **Relief réel** (AWS Terrain Tiles : SRTM, EU-DEM ; zoom 14, grille de 12 m) : le plateau de Surville à 119 m,
+  la Seine et l'Yonne vers 45 m. **6 003 bâtiments OpenStreetMap** à leur hauteur, toits pris dans la photo IGN,
+  façades teintées par la photo ; recalage vérifié sur la photo à 0,32 m (le pavillon en U tombe exactement).
+- **Direction artistique : le matin.** Soleil levant au nord-est, devant l'oiseau ; voile atmosphérique qui bleuit le
+  lointain et s'embrase vers le soleil ; on commence au-dessus d'une couche de nuages, on la traverse.
+- **Le vol** (temps égal par étape) : nuages au-dessus de la vieille ville → la Seine → le confluent → le coteau boisé
+  de Surville → les tours → virage au nord du pavillon → piqué vers la cour, le pavillon au centre de l'image → coupe
+  (fondu au noir) sur la vraie photo de l'allée. Le plan-séquence de l'allée garde ses durées ; il commence à l'aube
+  (et non plus en pleine nuit) pour rester dans la même lumière.
+- Crédit des sources affiché pendant le vol. Affiches de démarrage refaites.
+- Code : `world/aerial.js` ; données : `assets/data/aerien.json` (relief en décimètres, bâtiments) ; `scenes/terr.js` revenu à la v14.
+
 ## Version 14.2 (5 octobre 2026) : le son du vol
 - Sons générés (ElevenLabs, effets sonores) : `vent.mp3` (boucle), `aile.mp3` (un coup d'aile), `plongee.mp3`, `atterrissage.mp3`.
 - Toujours **à la demande** (bouton « Activer le son ») : le vent monte avec la vitesse et s'éclaircit dans la plongée,

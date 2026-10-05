@@ -358,3 +358,9 @@
 #da-experience.is-live .v2-human.is-quiet .v2-human__list,#da-experience.is-live .v2-human.is-quiet .v2-work{opacity:0;pointer-events:none}
 #da-experience.is-live .v2-human.is-quiet .v2-stage::before{opacity:0}
 @media (max-aspect-ratio:4/5){#da-experience.is-live .v2-human .v2-stage{--fx:.68}#da-experience.is-live .v2-human.is-quiet .v2-human__t{font-size:clamp(46px,16vw,110px)}#da-experience.is-live .v2-human.is-quiet .v2-human__head{top:28%}}
+
+/* ================= I · crédit de la vue aérienne (visible pendant le vol) ================= */
+#da-experience .v2-hero__src{display:none}
+#da-experience.is-live .v2-hero__src{display:block;position:absolute;right:var(--gut);bottom:clamp(64px,9vh,96px);max-width:min(46vw,560px);margin:0;text-align:right;font-size:11px;line-height:1.4;color:rgba(255,255,255,.62);text-shadow:0 1px 6px rgba(0,0,0,.6);transition:opacity .4s}
+@media (max-width:760px){#da-experience.is-live .v2-hero__src{left:var(--gut);max-width:none;text-align:left;bottom:clamp(70px,11vh,110px)}}
+#da-experience.is-booting .v2-hero__src{opacity:0}
