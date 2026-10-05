@@ -21,7 +21,7 @@ export async function create(ctx, el) {
     [0, V(2.05, 1.62, 2.4), V(2.05, 1.45, -6)],        /* la porte */
     [.16, V(2.5, 1.6, -2.7), V(6.4, 1.5, -5.6)],        /* on entre : la nuée arrive par-dessus l'épaule */
     [.4, V(2.6, 1.62, -3.1), V(6.6, 1.45, -5.7)],       /* « 3 000+ » face à nous */
-    [.6, V(2.9, 1.66, -3.2), V(6.6, 1.5, -5.7)],        /* « 600 m² » : la surface de lumière, face à nous */
+    [.6, V(2.75, 1.62, -3.2), V(6.6, 1.45, -5.7)],      /* « 600 m² » : la surface de lumière, face à nous */
     [.78, V(1.8, 1.7, -3), V(5.6, 1.4, -6.2)],          /* les deux lucioles */
     [1, V(3.4, 1.6, -2.9), V(8.5, 1.1, -5.8)]           /* néons allumés : départ de la visite */
   ];
@@ -57,7 +57,7 @@ export async function create(ctx, el) {
     return T.a.clone().addScaledVector(T.b.clone().sub(T.a), u).addScaledVector(T.c.clone().sub(T.a), v).applyMatrix4(holder.matrixWorld);
   };
   /* « 600 m² » : 600 cases d'un mètre carré (30 × 20), à la place du chiffre ; chaque case est un nœud de lumière (5 points) */
-  const COLS = 30, ROWS = 20, CELL = ctx.mobile ? .078 : .142;
+  const COLS = 30, ROWS = 20, CELL = ctx.mobile ? .052 : .09;
   const node = (c, r) => V((c - (COLS - 1) / 2) * CELL, ((ROWS - 1) / 2 - r) * CELL, 0).applyMatrix4(holder.matrixWorld);
   const pos = new Float32Array(N * 3), aT1 = new Float32Array(N * 3), aT2 = new Float32Array(N * 3), aS = new Float32Array(N), aL = new Float32Array(N);
   const door = pavilion.door;
@@ -179,7 +179,7 @@ export async function create(ctx, el) {
       /* « 600 m² » : le chiffre et sa légende sous la surface de lumière */
       if ((act === 0 || act === 1) && facts[act]) {
         const li = facts[act], box = li.parentElement.getBoundingClientRect(), cv = ctx.renderer.domElement.getBoundingClientRect();
-        capV.copy(TXT).y -= act === 0 ? (ctx.mobile ? .42 : .78) : (ctx.mobile ? .86 : 1.55); capV.project(ctx.camera);
+        capV.copy(TXT).y -= act === 0 ? (ctx.mobile ? .42 : .78) : (ctx.mobile ? .6 : 1.0); capV.project(ctx.camera);
         const x = cv.left + (capV.x * .5 + .5) * cv.width, y = cv.top + (.5 - capV.y * .5) * cv.height;
         li.style.left = (x - box.left - li.offsetWidth / 2).toFixed(1) + 'px';
         li.style.bottom = 'auto'; li.style.top = (y - box.top).toFixed(1) + 'px';
