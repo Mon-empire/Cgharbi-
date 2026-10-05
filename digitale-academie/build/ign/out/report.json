@@ -1,0 +1,647 @@
+{
+ "steps": [
+  {
+   "pavillon_l93": [
+    696810.8635201245,
+    6810743.723745221
+   ]
+  },
+  {
+   "wms_r_layers_elevation": [
+    "ADEME_EPCI_lineaire-haie-preleve-par-an",
+    "ADEME_EPCI_lineaire-haie-preleve-totalement-par-an",
+    "ADEME_EPCI_volume-bois-de-haie-preleve-par-an",
+    "ADEME_EPCI_volume-bois-de-haie-preleve-totalement-par-an",
+    "ADEME_KM2_lineaire-haie-preleve-par-an",
+    "ADEME_KM2_lineaire-haie-preleve-totalement-par-an",
+    "ADEME_KM2_volume-bois-de-haie-preleve-par-an",
+    "ADEME_KM2_volume-bois-de-haie-preleve-totalement-par-an",
+    "ELEVATION.CONTOUR.LINE",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS.SHADOW",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.THRESHOLD",
+    "ELEVATION.ELEVATIONGRIDCOVERAGE.THRESHOLD",
+    "ELEVATIONGRIDCOVERAGE.HIGHRES.QUALITY",
+    "Graphe de source du RGE Alti",
+    "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93",
+    "hypso_mnh",
+    "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.RGR92UTM40S",
+    "hypso_mnh",
+    "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.WGS84G",
+    "hypso_mnh",
+    "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93",
+    "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.RGR92UTM40S",
+    "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.WGS84G",
+    "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93",
+    "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.RGR92UTM40S",
+    "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.WGS84G",
+    "IGNF_LIDAR-HD_MNT_ELEVATION.MIXED.WGS84G",
+    "PLANIGN.LIDAR.SURSOL",
+    "PLANIGN.LIDAR.TERRAIN",
+    "RGEALTI-DST_PYR-ZIP_FXX_LAMB93_WMS",
+    "RGEALTI-DST_PYR-ZIP_GLP_WGS84UTM20_WMS",
+    "RGEALTI-DST_PYR-ZIP_GUF_UTM22RGFG95_WMS",
+    "RGEALTI-DST_PYR-ZIP_MTQ_WGS84UTM20_WMS",
+    "RGEALTI-DST_PYR-ZIP_MYT_RGM04UTM38S_WMS",
+    "RGEALTI-DST_PYR-ZIP_REU_RGR92UTM40S_WMS",
+    "RGEALTI-DST_PYR-ZIP_SBA_WGS84UTM20_WMS",
+    "RGEALTI-DST_PYR-ZIP_SPM_RGSPM06U21_WMS",
+    "RGEALTI-MNT_PYR-ZIP_FXX_LAMB93_WMS",
+    "RGEALTI-MNT_PYR-ZIP_GLP_WGS84UTM20_WMS",
+    "RGEALTI-MNT_PYR-ZIP_GUF_UTM22RGFG95_WMS",
+    "RGEALTI-MNT_PYR-ZIP_MTQ_WGS84UTM20_WMS",
+    "RGEALTI-MNT_PYR-ZIP_MYT_RGM04UTM38S_WMS",
+    "RGEALTI-MNT_PYR-ZIP_REU_RGR92UTM40S_WMS",
+    "RGEALTI-MNT_PYR-ZIP_SPM_RGSPM06U21_WMS",
+    "RGEALTI-SRC_PYR-ZIP_FXX_LAMB93_WMS",
+    "RGEALTI-SRC_PYR-ZIP_GLP_WGS84UTM20_WMS",
+    "RGEALTI-SRC_PYR-ZIP_GUF_UTM22RGFG95_WMS",
+    "RGEALTI-SRC_PYR-ZIP_MTQ_WGS84UTM20_WMS",
+    "RGEALTI-SRC_PYR-ZIP_MYT_RGM04UTM38S_WMS",
+    "RGEALTI-SRC_PYR-ZIP_REU_RGR92UTM40S_WMS",
+    "RGEALTI-SRC_PYR-ZIP_SBA_WGS84UTM20_WMS",
+    "RGEALTI-SRC_PYR-ZIP_SMA_WGS84UTM20_WMS",
+    "RGEALTI-SRC_PYR-ZIP_SPM_RGSPM06U21_WMS"
+   ]
+  },
+  {
+   "wms_r_formats": [
+    "XML",
+    "application/html",
+    "application/json",
+    "application/xml",
+    "image/geotiff",
+    "image/gif",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/tiff",
+    "image/x-bil;bits=32",
+    "text/html",
+    "text/plain",
+    "text/xml"
+   ]
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_EPCI_lineaire-haie-preleve-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_EPCI_lineaire-haie-preleve-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_EPCI_lineaire-haie-preleve-totalement-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_EPCI_lineaire-haie-preleve-totalement-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_EPCI_volume-bois-de-haie-preleve-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_EPCI_volume-bois-de-haie-preleve-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_EPCI_volume-bois-de-haie-preleve-totalement-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_EPCI_volume-bois-de-haie-preleve-totalement-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_KM2_lineaire-haie-preleve-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_KM2_lineaire-haie-preleve-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_KM2_lineaire-haie-preleve-totalement-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_KM2_lineaire-haie-preleve-totalement-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_KM2_volume-bois-de-haie-preleve-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_KM2_volume-bois-de-haie-preleve-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ADEME_KM2_volume-bois-de-haie-preleve-totalement-par-an",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ADEME_KM2_volume-bois-de-haie-preleve-totalement-par-an",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ELEVATION.CONTOUR.LINE",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.CONTOUR.LINE",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640537
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": 113.31698608398438,
+    "max": 119.0,
+    "center": 119.0
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": 111.8348388671875,
+    "max": 120.00975036621094,
+    "center": 118.21578979492188
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": 111.22126770019531,
+    "max": 187.60003662109375,
+    "center": 121.57300567626953
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS.SHADOW",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": 111.22126770019531,
+    "max": 187.60003662109375,
+    "center": 121.57300567626953
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640537
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": 115.00935363769531,
+    "max": 120.46487426757812,
+    "center": 119.2169189453125
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.THRESHOLD",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.THRESHOLD",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.THRESHOLD",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATION.ELEVATIONGRIDCOVERAGE.THRESHOLD",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640539
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "ELEVATIONGRIDCOVERAGE.HIGHRES.QUALITY",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "ELEVATIONGRIDCOVERAGE.HIGHRES.QUALITY",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 640537
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "Graphe de source du RGE Alti",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "Graphe de source du RGE Alti",
+    "fmt": "image/geotiff",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "hypso_mnh",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "hypso_mnh",
+    "fmt": "image/geotiff",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.RGR92UTM40S",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "hypso_mnh",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "hypso_mnh",
+    "fmt": "image/geotiff",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 320523
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNH_ELEVATION.ELEVATIONGRIDCOVERAGE.WGS84G",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "hypso_mnh",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "hypso_mnh",
+    "fmt": "image/geotiff",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.RGR92UTM40S",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 320523
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNS_ELEVATION.ELEVATIONGRIDCOVERAGE.WGS84G",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.RGR92UTM40S",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 320523
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.WGS84G",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": null,
+    "max": null,
+    "center": -9999.0
+   }
+  },
+  {
+   "sample": {
+    "layer": "IGNF_LIDAR-HD_MNT_ELEVATION.MIXED.WGS84G",
+    "fmt": "image/x-bil;bits=32",
+    "ct": "image/x-bil;bits=32",
+    "bytes": 640000,
+    "min": 111.8348388671875,
+    "max": 120.00975036621094,
+    "center": 118.21578979492188
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "PLANIGN.LIDAR.SURSOL",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "PLANIGN.LIDAR.SURSOL",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 480523
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "PLANIGN.LIDAR.TERRAIN",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "PLANIGN.LIDAR.TERRAIN",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 480523
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "RGEALTI-DST_PYR-ZIP_FXX_LAMB93_WMS",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "RGEALTI-DST_PYR-ZIP_FXX_LAMB93_WMS",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 480521
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "RGEALTI-DST_PYR-ZIP_GLP_WGS84UTM20_WMS",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "RGEALTI-DST_PYR-ZIP_GLP_WGS84UTM20_WMS",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 480521
+   }
+  },
+  {
+   "sample_error": {
+    "layer": "RGEALTI-DST_PYR-ZIP_GUF_UTM22RGFG95_WMS",
+    "fmt": "image/x-bil;bits=32",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "sample": {
+    "layer": "RGEALTI-DST_PYR-ZIP_GUF_UTM22RGFG95_WMS",
+    "fmt": "image/geotiff",
+    "ct": "image/geotiff",
+    "bytes": 480521
+   }
+  },
+  {
+   "ortho": {
+    "ct": "image/jpeg",
+    "bytes": 137763
+   }
+  },
+  {
+   "lidar_tiles_error": {
+    "typename": "IGNF_NUAGES-DE-POINTS-LIDAR-HD:dalle",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  },
+  {
+   "lidar_tiles_error": {
+    "typename": "IGNF_LIDAR-HD_TA:nuage-dalle",
+    "err": "<HTTPError 400: 'Bad Request'>"
+   }
+  }
+ ]
+}
