@@ -363,51 +363,11 @@
 @media (max-width:760px){#da-experience.is-live .v2-hero__src{left:var(--gut);max-width:none;text-align:left;bottom:clamp(70px,11vh,110px)}}
 #da-experience.is-booting .v2-hero__src{opacity:0}
 
-/* ================= bibliothèque photographique : formations ================= */
-/* plus de voile plein écran : la photo respire ; un dégradé seulement sous le titre et sous la fiche */
-#da-experience.is-live .v2-asc .v2-stage::after{inset:auto 0 0 0;width:auto;height:46%;background:linear-gradient(0deg,rgba(4,8,13,.82),rgba(4,8,13,0))}
-#da-experience.is-live .v2-asc .v2-stage::before{height:42%;background:radial-gradient(110% 100% at 0 0,rgba(4,8,13,.78),rgba(4,8,13,0) 68%)}
-#da-experience.is-live .v2-asc__level{display:none}
-/* le panneau des étages : un ascenseur, DU en haut, DAEU au rez-de-chaussée */
-#da-experience.is-live .v2-steps{right:var(--gut);left:auto;top:50%;bottom:auto;transform:translateY(-50%);width:auto;display:flex;flex-direction:column-reverse;gap:4px;
-  padding:10px;border-radius:18px;background:rgba(4,8,13,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-#da-experience.is-live .v2-step__btn{display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;border-radius:12px;font-size:15px;font-weight:500;letter-spacing:.02em;color:var(--soft);transition:background .4s,color .4s}
-#da-experience.is-live .v2-step__n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:12px;letter-spacing:0;color:var(--mute);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:background .4s,color .4s,box-shadow .4s}
-#da-experience.is-live .v2-step.is-on .v2-step__btn{font-size:15px;font-weight:600;letter-spacing:.02em;color:var(--ink);background:rgba(255,255,255,.07)}
-#da-experience.is-live .v2-step.is-on .v2-step__n{background:var(--c);color:#04080D;box-shadow:0 0 18px var(--c)}
-/* le texte complet reste dans la liste pour les lecteurs d'écran ; à l'image, c'est la fiche qui le montre */
-#da-experience.is-live .v2-step__body,#da-experience.is-live .v2-step.is-on .v2-step__body{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;max-height:none;opacity:1;padding:0}
-#da-experience .v2-asc__card{display:none}
-#da-experience.is-live .v2-asc__card{display:block;left:var(--gut);bottom:clamp(44px,9vh,110px);width:min(420px,calc(100vw - 2 * var(--gut)));padding:22px 24px 22px 22px;opacity:0;
-  border-left:2px solid var(--c,var(--signal));background:linear-gradient(90deg,rgba(4,8,13,.72),rgba(4,8,13,.35));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:0 14px 14px 0}
-#da-experience .v2-asc__card-lv{font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--c,var(--signal));font-weight:600}
-#da-experience .v2-asc__card-t{margin-top:6px;font-size:clamp(34px,3.4vw,58px);font-weight:700;line-height:1;letter-spacing:-.03em}
-#da-experience .v2-asc__card-d{margin-top:12px;color:var(--soft);font-size:16px;line-height:1.5}
-#da-experience.is-live .v2-asc__note{left:var(--gut);right:auto;bottom:clamp(14px,3vh,30px);font-size:13px}
-@media (max-width:760px){
-  #da-experience.is-live .v2-steps{top:auto;bottom:calc(clamp(44px,9vh,110px) + 210px);transform:none;right:12px;left:auto;padding:6px;gap:2px}
-  #da-experience.is-live .v2-step__btn{padding:4px 10px 4px 4px;font-size:13px}
-  #da-experience.is-live .v2-step__n{width:24px;height:24px;font-size:11px}
-  #da-experience.is-live .v2-asc__card{bottom:44px;padding:16px 18px}
-  #da-experience .v2-asc__card-t{font-size:32px}
-  #da-experience .v2-asc__card-d{font-size:15px}
-}
-
-/* ================= bibliothèque photographique : parcours ================= */
-#da-experience.is-live .v2-walk .v2-stage::before{inset:auto 0 0 0;width:auto;height:48%;background:linear-gradient(0deg,rgba(4,8,13,.85),rgba(4,8,13,0))}
-#da-experience.is-live .v2-walk .v2-stage::after{content:"";position:absolute;inset:0 auto auto 0;width:min(60vw,900px);height:40%;background:radial-gradient(110% 100% at 0 0,rgba(4,8,13,.78),rgba(4,8,13,0) 68%);pointer-events:none;z-index:-1}
-#da-experience.is-live .v2-walk__head{top:clamp(28px,6vh,72px)}
+/* ================= parcours : une étape à la fois, en fiche lisible ================= */
 #da-experience.is-live .v2-walk__steps{width:min(440px,calc(100vw - 2 * var(--gut)))}
 #da-experience.is-live .v2-walk__step{padding:22px 24px 22px 22px;border-left:2px solid var(--signal);border-radius:0 14px 14px 0;background:linear-gradient(90deg,rgba(4,8,13,.72),rgba(4,8,13,.35));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #da-experience.is-live .v2-walk__step h3{font-size:clamp(32px,3.4vw,58px);font-weight:700;line-height:1}
-#da-experience.is-live .v2-walk__step h3::before{color:var(--signal);font-weight:600;letter-spacing:.26em}
-#da-experience.is-live .v2-walk__count{top:auto;bottom:clamp(40px,9vh,100px);right:var(--gut);font-size:clamp(44px,5vw,88px);font-weight:200;color:rgba(244,247,249,.85)}
-@media (max-width:760px){
-  #da-experience.is-live .v2-walk__steps{bottom:44px}
-  #da-experience.is-live .v2-walk__step{padding:16px 18px}
-  #da-experience.is-live .v2-walk__step h3{font-size:30px}
-  #da-experience.is-live .v2-walk__count{top:clamp(28px,6vh,72px);bottom:auto;right:var(--gut);font-size:36px}
-}
+@media (max-width:760px){#da-experience.is-live .v2-walk__step{padding:16px 18px}#da-experience.is-live .v2-walk__step h3{font-size:30px}}
 
 /* ================= repères du survol ================= */
 #da-experience .v2-marks{position:fixed;left:0;top:var(--top);width:100%;height:calc(var(--vh) - var(--top));pointer-events:none;z-index:0;overflow:hidden}
@@ -433,7 +393,7 @@
 #da-experience.is-live .v2-lieu .v2-facts li:first-child::before{margin:0 auto 12px}
 #da-experience.is-live .v2-lieu .v2-facts li:first-child span{margin:0 auto}
 
-/* ================= mobile : bibliothèque ================= */
+/* ================= mobile : accompagnement ================= */
 @media (max-width:760px){
   #da-experience.is-live .v2-asc__note{display:none}
   /* accompagnement : un soutien à la fois (les autres en titres), l'atelier qui s'élève nommé en haut à droite */
@@ -456,10 +416,7 @@
 /* ================= crédits : discrets, en bas, sur une ligne (plus de bloc en haut de l'image) ================= */
 #da-experience.is-live .v2-lieu .v2-credit,#da-experience.is-live .v2-campus .v2-credit{top:auto;right:auto;left:var(--gut);bottom:10px;max-width:min(52vw,640px);text-align:left;font-size:11px;line-height:1.4;color:rgba(201,214,223,.72);white-space:normal}
 @media (max-width:760px){#da-experience.is-live .v2-lieu .v2-credit,#da-experience.is-live .v2-campus .v2-credit{right:120px;max-width:none;font-size:10px;bottom:8px}}
-#da-experience.is-live .v2-biblio__credit{top:clamp(66px,9vh,96px);right:var(--gut);left:auto;bottom:auto;margin:0;max-width:min(38vw,460px);text-align:right;font-size:10.5px;line-height:1.4;color:rgba(201,214,223,.7)}
-#da-experience .v2-biblio__credit a{color:inherit}
-@media (max-width:760px){#da-experience.is-live .v2-biblio__credit{top:auto;bottom:6px;left:var(--gut);right:var(--gut);max-width:none;text-align:left;font-size:9.5px}}
-
+@media (max-width:760px){
 /* ================= la visite : une salle à la fois (jamais deux titres superposés), même fiche que la bibliothèque ================= */
 #da-experience.is-live .v2-room{transition:opacity .2s ease-in,transform .3s ease-in;padding:20px 24px 20px 22px;border-left:2px solid var(--signal);border-radius:0 14px 14px 0;background:linear-gradient(90deg,rgba(4,8,13,.72),rgba(4,8,13,.32));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #da-experience.is-live .v2-room.is-on{transition:opacity .6s .25s ease-out,transform .8s .25s cubic-bezier(.2,.8,.2,1)}

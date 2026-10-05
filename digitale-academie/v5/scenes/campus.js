@@ -21,7 +21,6 @@ export async function create(ctx, el) {
   const segOf = p => PHOTO.find(([, a, b]) => p >= a && p < b);
   const roomIdx = p => p < .15 ? 0 : p < .31 ? 1 : p < .48 ? 2 : p < .635 ? 3 : 4;
   let active = -1, lastNeon = '';
-  let preloaded = false;
   return {
     cam(p, m) {
       const seg = segOf(p);
@@ -42,8 +41,6 @@ export async function create(ctx, el) {
       return { pos, look, cut: 'pavillon' };
     },
     update(p, t, dt, m, isCurrent) {
-      /* la bibliothèque (vraies photos) se charge pendant la visite, avant d'être vue */
-      if (p > .2 && ctx.shot && !preloaded) { preloaded = true; ['b31', 'b30', 'b14', 'b15'].forEach(ctx.shot.load); }
       const idx = roomIdx(p);
       if (idx !== active) { if (active >= 0 && isCurrent && idx < 2) ctx.cue('borne'); active = idx; rooms.forEach((r, i) => r.classList.toggle('is-on', i === idx)); }
       el.querySelector('.v2-rooms').style.opacity = 1 - ss(.86, .94, p);
@@ -66,8 +63,6 @@ export async function create(ctx, el) {
       if (isCurrent && ctx.backdrop && !seg) {
         if (p < .32) ctx.backdrop.show({ a: 'accueil', b: 'info', mix: ss(.12, .18, p), zoom: p < .15 ? 1.14 + .05 * p / .15 : 1.02 + .1 * (p - .15) / .17, pan: [m.sx * .008, m.sy * .005], light: 1 - ss(.27, .31, p), warm: .4 });
         else if (p >= .79) ctx.backdrop.show({ a: 'salle', zoom: 1.02 + .16 * ss(.79, 1, p), pan: [m.sx * .008, m.sy * .005], light: .62, warm: .7, expo: 1.05, burn: ss(.86, .99, p) });
-        /* derrière le papier peint qui se consume : la vraie bibliothèque, déjà là (premier plan du chapitre suivant) */
-        if (p >= .84 && ctx.shot) ctx.shot.show({ a: 'b31', pa: { at: [.5, .5], zoom: 1.1 - .08 * ss(.86, 1, p), d0: .32, dolly: .1 }, warm: .5, expo: 1.22, rays: .32, sun: [.5, -.4], vig: .55, lift: .35 }, t, isCurrent);
       }
 
       if (isCurrent) {

@@ -259,10 +259,7 @@ async function start() {
   /* les intérieurs en photographie : plus aucune pièce du pavillon modélisée à l'image */
   const { createBackdrop } = await import('./world/backdrop.js');
   const backdrop = await createBackdrop(ctx); ctx.backdrop = backdrop;
-  /* la bibliothèque en photographies profondes (vraies photos + profondeur estimée : parallaxe réelle) */
   ctx.assets = ASSETS; ctx.root = R;
-  const { createDepthShot } = await import('./world/depthshot.js');
-  const shot = await createDepthShot(ctx); ctx.shot = shot;
   /* on est l'oiseau : ses ailes et son dos, attachés à la caméra */
   /* le vrai Montereau vu du ciel (orthophotos IGN, relief réel, bâtiments OSM) */
   const { createAerial } = await import('./world/aerial.js');
@@ -576,14 +573,13 @@ async function start() {
     }
 
     /* ----- chapitres ----- */
-    backdrop.reset(); backdrop.fit(); shot.reset(); shot.fit(); shot.clear();
+    backdrop.reset(); backdrop.fit();
     for (const id in SC) { const c = C[id]; if (id !== 'hero' && c && (c.vis || id === center)) SC[id].update(c.p, t, dt, mouse, id === center); else if (SC[id].rest) SC[id].rest(); }
     if (backdrop.on) { pavilion.exterior.visible = false; pavilion.interior.visible = false; }
-    if (shot.on && shot.U.uFade.value > .99) { library.group.visible = false; pavilion.exterior.visible = false; pavilion.interior.visible = false; }
     if (SC.finale) SC.finale.group.visible = C.finale.vis || center === 'finale';
     /* livres : arrachés du mur à la fin de la visite, en vol dans l'atrium, calmes près des lanternes, puis aspirés par la verrière */
-    flock.update(t, center === 'campus' ? { on: pc > .87 && !shot.on, burst: ss(.89, .995, pc) }
-      : ['asc', 'walk', 'human'].includes(center) ? { on: !shot.on, calm: center === 'human' ? 1 : 0 }
+    flock.update(t, center === 'campus' ? { on: pc > .87, burst: ss(.89, .995, pc) }
+      : ['asc', 'walk', 'human'].includes(center) ? { on: true, calm: center === 'human' ? 1 : 0 }
       : { on: false });   /* le logo du final ne survit pas quand on remonte */
     /* le papier peint suit la vie de la bibliothèque (rendu réduit, quelques images par seconde) */
     if (center === 'campus' && ++muralTick % 6 === 0) renderMural();

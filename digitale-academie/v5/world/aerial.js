@@ -315,7 +315,6 @@ export async function createAerial(ctx) {
     { n: 'L’Yonne', x: 150, z: 1300, up: 2, w: [.28, .42], wt: [.14, .42] },
     { n: 'La Seine', x: 480, z: 780, up: 2, w: [.36, .56], wt: [.14, .5] },
     { n: 'Gare de Montereau', x: -1055.7, z: 1950.7, up: 4, w: [0, 0], wt: [.1, .3] },
-    { n: 'Surville', x: 250, z: 60, up: 20, w: [0, 0], wt: [.42, .62], big: true, area: true },
     { n: 'Digitale Académie', x: 0, z: 0, up: 8, w: [.66, .9], wt: [.6, .95], big: true }
   ];
   const mk = document.createElement('div'); mk.className = 'v2-marks'; mk.setAttribute('aria-hidden', 'true');
