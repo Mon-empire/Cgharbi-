@@ -21,6 +21,7 @@
 /* ---------- canvas : une seule scène pour toute l'expérience ---------- */
 #da-experience .v2-gl{position:fixed;left:0;top:var(--top);width:100%;height:calc(var(--vh) - var(--top));display:block;opacity:0;visibility:hidden;transition:opacity .6s;z-index:0;pointer-events:none}
 #da-experience .v2-gl.is-on{opacity:1;visibility:visible}
+#da-experience .v2-ov{position:fixed;left:0;top:var(--top);width:100%;height:calc(var(--vh) - var(--top));display:block;z-index:0;pointer-events:none}
 
 /* ---------- chapitres ---------- */
 #da-experience .v2-ch{position:relative;z-index:1}
@@ -301,9 +302,6 @@
 #da-experience.is-live .v2-lieu .v2-facts li.is-on{opacity:1;transform:none}
 #da-experience.is-live .v2-lieu .v2-facts strong{font-size:clamp(52px,6vw,108px);font-weight:300}
 #da-experience.is-live .v2-lieu .v2-facts span{font-size:clamp(15px,1.2vw,19px);max-width:22em}
-/* « 3 000+ » est écrit dans l'espace par les 3 000 points : le chiffre reste pour les lecteurs d'écran */
-#da-experience.is-live .v2-lieu .v2-facts li:first-child strong{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-#da-experience.is-live .v2-lieu .v2-facts li:first-child span::before{content:"";display:block;width:32px;height:1px;margin-bottom:14px;background:var(--signal);box-shadow:0 0 10px rgba(255,214,0,.8)}
 @media (max-width:760px){
   #da-experience.is-live .v2-lieu .v2-facts{width:auto;right:var(--gut);bottom:clamp(110px,20vh,170px)}
   #da-experience.is-live .v2-lieu .v2-facts strong{font-size:52px}
@@ -364,3 +362,73 @@
 #da-experience.is-live .v2-hero__src{display:block;position:absolute;right:var(--gut);bottom:clamp(64px,9vh,96px);max-width:min(46vw,560px);margin:0;text-align:right;font-size:11px;line-height:1.4;color:rgba(255,255,255,.62);text-shadow:0 1px 6px rgba(0,0,0,.6);transition:opacity .4s}
 @media (max-width:760px){#da-experience.is-live .v2-hero__src{left:var(--gut);max-width:none;text-align:left;bottom:clamp(70px,11vh,110px)}}
 #da-experience.is-booting .v2-hero__src{opacity:0}
+
+/* ================= bibliothèque photographique : formations ================= */
+/* plus de voile plein écran : la photo respire ; un dégradé seulement sous le titre et sous la fiche */
+#da-experience.is-live .v2-asc .v2-stage::after{inset:auto 0 0 0;width:auto;height:46%;background:linear-gradient(0deg,rgba(4,8,13,.82),rgba(4,8,13,0))}
+#da-experience.is-live .v2-asc .v2-stage::before{height:42%;background:radial-gradient(110% 100% at 0 0,rgba(4,8,13,.78),rgba(4,8,13,0) 68%)}
+#da-experience.is-live .v2-asc__level{display:none}
+/* le panneau des étages : un ascenseur, DU en haut, DAEU au rez-de-chaussée */
+#da-experience.is-live .v2-steps{right:var(--gut);left:auto;top:50%;bottom:auto;transform:translateY(-50%);width:auto;display:flex;flex-direction:column-reverse;gap:4px;
+  padding:10px;border-radius:18px;background:rgba(4,8,13,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+#da-experience.is-live .v2-step__btn{display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;border-radius:12px;font-size:15px;font-weight:500;letter-spacing:.02em;color:var(--soft);transition:background .4s,color .4s}
+#da-experience.is-live .v2-step__n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:12px;letter-spacing:0;color:var(--mute);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:background .4s,color .4s,box-shadow .4s}
+#da-experience.is-live .v2-step.is-on .v2-step__btn{font-size:15px;font-weight:600;letter-spacing:.02em;color:var(--ink);background:rgba(255,255,255,.07)}
+#da-experience.is-live .v2-step.is-on .v2-step__n{background:var(--c);color:#04080D;box-shadow:0 0 18px var(--c)}
+/* le texte complet reste dans la liste pour les lecteurs d'écran ; à l'image, c'est la fiche qui le montre */
+#da-experience.is-live .v2-step__body,#da-experience.is-live .v2-step.is-on .v2-step__body{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;max-height:none;opacity:1;padding:0}
+#da-experience .v2-asc__card{display:none}
+#da-experience.is-live .v2-asc__card{display:block;left:var(--gut);bottom:clamp(44px,9vh,110px);width:min(420px,calc(100vw - 2 * var(--gut)));padding:22px 24px 22px 22px;opacity:0;
+  border-left:2px solid var(--c,var(--signal));background:linear-gradient(90deg,rgba(4,8,13,.72),rgba(4,8,13,.35));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:0 14px 14px 0}
+#da-experience .v2-asc__card-lv{font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--c,var(--signal));font-weight:600}
+#da-experience .v2-asc__card-t{margin-top:6px;font-size:clamp(34px,3.4vw,58px);font-weight:700;line-height:1;letter-spacing:-.03em}
+#da-experience .v2-asc__card-d{margin-top:12px;color:var(--soft);font-size:16px;line-height:1.5}
+#da-experience.is-live .v2-asc__note{left:var(--gut);right:auto;bottom:clamp(14px,3vh,30px);font-size:13px}
+@media (max-width:760px){
+  #da-experience.is-live .v2-steps{top:auto;bottom:calc(clamp(44px,9vh,110px) + 210px);transform:none;right:12px;left:auto;padding:6px;gap:2px}
+  #da-experience.is-live .v2-step__btn{padding:4px 10px 4px 4px;font-size:13px}
+  #da-experience.is-live .v2-step__n{width:24px;height:24px;font-size:11px}
+  #da-experience.is-live .v2-asc__card{bottom:44px;padding:16px 18px}
+  #da-experience .v2-asc__card-t{font-size:32px}
+  #da-experience .v2-asc__card-d{font-size:15px}
+}
+
+/* ================= bibliothèque photographique : parcours ================= */
+#da-experience.is-live .v2-walk .v2-stage::before{inset:auto 0 0 0;width:auto;height:48%;background:linear-gradient(0deg,rgba(4,8,13,.85),rgba(4,8,13,0))}
+#da-experience.is-live .v2-walk .v2-stage::after{content:"";position:absolute;inset:0 auto auto 0;width:min(60vw,900px);height:40%;background:radial-gradient(110% 100% at 0 0,rgba(4,8,13,.78),rgba(4,8,13,0) 68%);pointer-events:none;z-index:-1}
+#da-experience.is-live .v2-walk__head{top:clamp(28px,6vh,72px)}
+#da-experience.is-live .v2-walk__steps{width:min(440px,calc(100vw - 2 * var(--gut)))}
+#da-experience.is-live .v2-walk__step{padding:22px 24px 22px 22px;border-left:2px solid var(--signal);border-radius:0 14px 14px 0;background:linear-gradient(90deg,rgba(4,8,13,.72),rgba(4,8,13,.35));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#da-experience.is-live .v2-walk__step h3{font-size:clamp(32px,3.4vw,58px);font-weight:700;line-height:1}
+#da-experience.is-live .v2-walk__step h3::before{color:var(--signal);font-weight:600;letter-spacing:.26em}
+#da-experience.is-live .v2-walk__count{top:auto;bottom:clamp(40px,9vh,100px);right:var(--gut);font-size:clamp(44px,5vw,88px);font-weight:200;color:rgba(244,247,249,.85)}
+@media (max-width:760px){
+  #da-experience.is-live .v2-walk__steps{bottom:44px}
+  #da-experience.is-live .v2-walk__step{padding:16px 18px}
+  #da-experience.is-live .v2-walk__step h3{font-size:30px}
+  #da-experience.is-live .v2-walk__count{top:clamp(28px,6vh,72px);bottom:auto;right:var(--gut);font-size:36px}
+}
+
+/* ================= repères du survol ================= */
+#da-experience .v2-marks{position:fixed;left:0;top:var(--top);width:100%;height:calc(var(--vh) - var(--top));pointer-events:none;z-index:0;overflow:hidden}
+#da-experience .v2-mark{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
+#da-experience .v2-mark::before{content:"";position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:#FFF4D6;box-shadow:0 0 10px rgba(255,214,140,.9)}
+#da-experience .v2-mark::after{content:"";position:absolute;left:0;bottom:3px;width:1px;height:54px;background:linear-gradient(0deg,rgba(255,244,214,.9),rgba(255,244,214,0))}
+#da-experience .v2-mark span{position:absolute;left:0;bottom:62px;transform:translateX(-50%);white-space:nowrap;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#FFF8EA;text-shadow:0 1px 12px rgba(4,8,13,.95),0 0 2px rgba(4,8,13,.8)}
+#da-experience .v2-mark--big span{font-size:clamp(15px,1.3vw,22px);letter-spacing:.24em;font-weight:600}
+@media (max-width:760px){#da-experience .v2-mark span{font-size:11px;letter-spacing:.14em}#da-experience .v2-mark::after{height:38px}#da-experience .v2-mark span{bottom:44px}}
+#da-experience .v2-mark--area::before,#da-experience .v2-mark--area::after{display:none}
+#da-experience .v2-mark--area span{bottom:0;transform:translate(-50%,50%);font-weight:300;letter-spacing:.5em;opacity:.9}
+
+/* ================= le lieu : un chiffre à la fois, jamais deux à l'écran ================= */
+/* le chiffre sortant s'efface vite ; le suivant n'entre qu'ensuite ; le chiffre et sa légende restent ensemble */
+#da-experience.is-live .v2-lieu .v2-facts li{transition:opacity .22s ease-in,transform .3s ease-in;transform:translateY(14px)}
+#da-experience.is-live .v2-lieu .v2-facts li.is-on{transition:opacity .7s .3s ease-out,transform .9s .3s cubic-bezier(.2,.8,.2,1)}
+#da-experience.is-live .v2-lieu .v2-facts strong{display:block;color:var(--ink);text-shadow:0 2px 30px rgba(4,8,13,.7)}
+#da-experience.is-live .v2-lieu .v2-facts li::before{content:"";display:block;width:32px;height:2px;margin-bottom:14px;background:var(--signal);box-shadow:0 0 10px rgba(255,214,0,.7)}
+/* « 3 000+ » est écrit dans l'espace par les 3 000 points : le chiffre DOM reste pour les lecteurs d'écran,
+   la légende vient se placer juste sous le chiffre de lumière (position calculée à chaque image) */
+#da-experience.is-live .v2-lieu .v2-facts li:first-child strong{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#da-experience.is-live .v2-lieu .v2-facts li:first-child{width:max-content;max-width:min(80vw,420px);text-align:center}
+#da-experience.is-live .v2-lieu .v2-facts li:first-child::before{margin:0 auto 12px}
+#da-experience.is-live .v2-lieu .v2-facts li:first-child span{margin:0 auto}

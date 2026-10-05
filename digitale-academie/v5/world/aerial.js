@@ -25,20 +25,51 @@ export async function createAerial(ctx) {
   ]);
   [tWide, tCity, tPav].forEach(t => { t.anisotropy = ctx.renderer.capabilities.getMaxAnisotropy(); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; });
 
+  /* ---------- la vraie 3D : modèle numérique de surface IGN (bâtiments, arbres, coteau) + orthophotos 0,5 m et 0,2 m ---------- */
+  const IGN = ASSETS + 'ign/';
+  const loadDsm = (f, Z) => new Promise(ok => {
+    const im = new Image(); im.onload = () => {
+      const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0);
+      const px = g.getImageData(0, 0, c.width, c.height).data, A = new Float32Array(c.width * c.height);
+      for (let i = 0; i < A.length; i++) A[i] = (px[i * 4] * 256 + px[i * 4 + 1]) / 10 + Z.base - D.pavAlt;
+      ok({ A, w: c.width, h: c.height, Z });
+    }; im.onerror = () => ok(null); im.src = IGN + f;
+  });
+  let Zn = null;
+  try {
+    const zj = await fetch(IGN + 'zones.json').then(r => r.ok ? r.json() : null);
+    if (zj) {
+      const [dv, dp] = await Promise.all([loadDsm('dsm-ville.png', zj.zones.ville), loadDsm('dsm-pav.png', zj.zones.pav)]);
+      if (dv && dp) Zn = { ville: dv, pav: dp, meta: zj };
+    }
+  } catch (e) { Zn = null; }
+  const inRect = (r, x, z, m = 0) => x > r[0] + m && x < r[2] - m && z > r[1] + m && z < r[3] - m;
+  const dsmAt = (Dz, x, z) => {
+    const r = Dz.Z.rect, st = Dz.Z.step, fx = Math.min(Dz.w - 1.001, Math.max(0, (x - r[0]) / st - .5)), fz = Math.min(Dz.h - 1.001, Math.max(0, (z - r[1]) / st - .5));
+    const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, A = Dz.A, w = Dz.w;
+    return A[j * w + i] * (1 - u) * (1 - v) + A[j * w + i + 1] * u * (1 - v) + A[(j + 1) * w + i] * (1 - u) * v + A[(j + 1) * w + i + 1] * u * v;
+  };
+
   /* ---------- relief ---------- */
   const E = D.elev, raw = Uint8Array.from(atob(E.dm), c => c.charCodeAt(0)), H16 = new Int16Array(raw.buffer);
-  const height = (x, z) => {
+  const height0 = (x, z) => {
     const fx = Math.min(E.nx - 1.001, Math.max(0, (x - E.x0) / E.step)), fz = Math.min(E.nz - 1.001, Math.max(0, (z - E.z0) / E.step));
     const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, h = (a, b) => H16[b * E.nx + a] / 10;
     return h(i, j) * (1 - u) * (1 - v) + h(i + 1, j) * u * (1 - v) + h(i, j + 1) * (1 - u) * v + h(i + 1, j + 1) * u * v;
   };
+  const height = (x, z) => Zn && inRect(Zn.pav.Z.rect, x, z, 2) ? dsmAt(Zn.pav, x, z) : Zn && inRect(Zn.ville.Z.rect, x, z, 2) ? dsmAt(Zn.ville, x, z) : height0(x, z);
   const stride = LOW ? 2 : 1, NX = Math.floor((E.nx - 1) / stride) + 1, NZ = Math.floor((E.nz - 1) / stride) + 1;
   const tp = new Float32Array(NX * NZ * 3), idx = [];
   for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
     const x = E.x0 + i * stride * E.step, z = E.z0 + j * stride * E.step;
     tp.set([x, H16[j * stride * E.nx + i * stride] / 10, z], (j * NX + i) * 3);
   }
-  for (let j = 0; j < NZ - 1; j++) for (let i = 0; i < NX - 1; i++) { const a = j * NX + i; idx.push(a, a + NX, a + 1, a + 1, a + NX, a + NX + 1); }
+  for (let j = 0; j < NZ - 1; j++) for (let i = 0; i < NX - 1; i++) {
+    const a = j * NX + i;
+    if (Zn && inRect(Zn.ville.Z.rect, tp[a * 3] + stride * E.step * .5, tp[a * 3 + 2] + stride * E.step * .5, 14)) continue;   /* la vraie 3D prend le relais */
+    idx.push(a, a + NX, a + 1, a + 1, a + NX, a + NX + 1);
+  }
   const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.BufferAttribute(tp, 3)); tg.setIndex(idx); tg.computeVertexNormals();
 
   /* ---------- lumière, voile et photo : partagés par le sol et les bâtiments ---------- */
@@ -102,6 +133,51 @@ export async function createAerial(ctx) {
         gl_FragColor=vec4(haze(c,vW)*uShow,1.);}`
   });
   const terrain = new THREE.Mesh(tg, terrMat); terrain.frustumCulled = false; G.add(terrain);
+
+  /* la vraie 3D : une dalle par orthophoto, le relief du MNS (bâtiments et arbres compris) ; une jupe cache les raccords */
+  const dsmMeshes = [];
+  if (Zn) {
+    const tl = new THREE.TextureLoader(), maxAni = ctx.renderer.capabilities.getMaxAnisotropy();
+    const loadT = f => tl.loadAsync(IGN + f).then(t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = maxAni; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; }).catch(() => null);
+    const HIQ = !LOW && ['HIGH', 'ULTRA'].includes(ctx.level);
+    const DSMF = PHOTO + `uniform sampler2D uTile;uniform vec4 rTile;varying vec3 vW;varying vec3 vN;
+      void main(){vec3 N=normalize(vN);vec2 tuv=ruv(rTile,vW.xz);
+        /* une orthophoto n'a pas de façade : sur les murs, la teinte moyenne du voisinage, assombrie (aucune matière inventée) */
+        float steep=1.-smoothstep(.42,.8,N.y);
+        vec3 ph=mix(texture2D(uTile,tuv).rgb,texture2D(uTile,tuv,4.5).rgb*.78,steep*.75);
+        vec3 c=grade(ph);
+        float f=clamp(dot(N,uSun)*2.2+.35,0.,1.);
+        c=sunlight(c,sunLit(vW+N*1.2)*smoothstep(-.05,.15,dot(N,uSun)+.12),f);
+        c*=1.-.3*steep*(1.-clamp(dot(N,uSun)*2.,0.,1.));
+        gl_FragColor=vec4(haze(c,vW)*uShow,1.);}`;
+    const build = async (Dz, name, stride, hole, hiTex) => {
+      const st = Dz.Z.step * stride, zr = Dz.Z.rect;
+      await Promise.all(Dz.Z.tiles.map(async t => {
+        const tex = await loadT(t.f + (hiTex ? '' : '-m') + '.jpg'); if (!tex) return;
+        const [x0, z0, x1, z1] = t.rect, nx = Math.round((x1 - x0) / st) + 1, nz = Math.round((z1 - z0) / st) + 1;
+        const P = [], I = [];
+        for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const x = x0 + (x1 - x0) * i / (nx - 1), z = z0 + (z1 - z0) * j / (nz - 1); P.push(x, dsmAt(Dz, x, z), z); }
+        for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) {
+          const a = j * nx + i, cx = x0 + (x1 - x0) * (i + .5) / (nx - 1), cz = z0 + (z1 - z0) * (j + .5) / (nz - 1);
+          if (hole && inRect(hole, cx, cz, 1)) continue;
+          I.push(a, a + nx, a + 1, a + 1, a + nx, a + nx + 1);
+        }
+        /* jupe sur les bords extérieurs de la zone : 30 m vers le bas */
+        const edge = (ids) => { for (let k = 0; k < ids.length - 1; k++) { const a = ids[k], b = ids[k + 1], n = P.length / 3; P.push(P[a * 3], P[a * 3 + 1] - 30, P[a * 3 + 2], P[b * 3], P[b * 3 + 1] - 30, P[b * 3 + 2]); I.push(a, n, b, b, n, n + 1, a, b, n, b, n + 1, n); } };
+        const row = j => Array.from({ length: nx }, (_, i) => j * nx + i), col = i => Array.from({ length: nz }, (_, j) => j * nx + i);
+        if (Math.abs(z0 - zr[1]) < 1) edge(row(0)); if (Math.abs(z1 - zr[3]) < 1) edge(row(nz - 1));
+        if (Math.abs(x0 - zr[0]) < 1) edge(col(0)); if (Math.abs(x1 - zr[2]) < 1) edge(col(nx - 1));
+        const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); geo.setIndex(I); geo.computeVertexNormals();
+        const mat = new THREE.ShaderMaterial({ uniforms: Object.assign({}, U, { uTile: { value: tex }, rTile: { value: new THREE.Vector4(x0, z0, x1, z1) } }), fog: false,
+          vertexShader: 'varying vec3 vW;varying vec3 vN;void main(){vW=position;vN=normal;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}', fragmentShader: DSMF });
+        const m = new THREE.Mesh(geo, mat); m.frustumCulled = false; m.name = 'mns-' + name; G.add(m); dsmMeshes.push(m);
+      }));
+    };
+    await Promise.all([
+      build(Zn.ville, 'ville', LOW ? 4 : 2, Zn.pav.Z.rect, HIQ),
+      build(Zn.pav, 'pav', LOW ? 2 : 1, null, !LOW)
+    ]);
+  }
   /* au-delà des données : une plaine dans le voile, pour qu'aucun bord ne se voie à l'horizon */
   const plain = new THREE.Mesh(new THREE.RingGeometry(2200, 30000, 64, 1), new THREE.ShaderMaterial({
     uniforms: U, fog: false, side: THREE.DoubleSide,
@@ -149,16 +225,18 @@ export async function createAerial(ctx) {
 
   /* carte d'ombre : caméra orthographique alignée sur le soleil, ajustée à la zone survolée (relief et bâtiments en mètres) */
   {
-    const c0 = new THREE.Vector3((D.a[0] + D.a[2]) / 2, 0, (D.a[1] + D.a[3]) / 2);
+    const RA = Zn ? Zn.ville.Z.rect : D.a;
+    const c0 = new THREE.Vector3((RA[0] + RA[2]) / 2, 0, (RA[1] + RA[3]) / 2);
     shCam.position.copy(c0).addScaledVector(SUN, 5000); shCam.up.set(0, 1, 0); shCam.lookAt(c0); shCam.updateMatrixWorld();
     const inv = shCam.matrixWorldInverse, b = new THREE.Box3();
-    for (const x of [D.a[0] - 400, D.a[2] + 400]) for (const z of [D.a[1] - 400, D.a[3] + 400]) for (const y of [-90, 140]) b.expandByPoint(new THREE.Vector3(x, y, z).applyMatrix4(inv));
+    for (const x of [RA[0] - 200, RA[2] + 200]) for (const z of [RA[1] - 200, RA[3] + 200]) for (const y of [-110, 90]) b.expandByPoint(new THREE.Vector3(x, y, z).applyMatrix4(inv));
     Object.assign(shCam, { left: b.min.x, right: b.max.x, bottom: b.min.y, top: b.max.y, near: -b.max.z - 50, far: -b.min.z + 50 });
     shCam.updateProjectionMatrix();
     U.uShM.value.multiplyMatrices(shCam.projectionMatrix, shCam.matrixWorldInverse);
     U.uBias.value = 1.2 / (shCam.far - shCam.near);
     const shScene = new THREE.Scene(), occ = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide });
-    shScene.add(new THREE.Mesh(tg, occ), new THREE.Mesh(bg, occ));
+    shScene.add(new THREE.Mesh(tg, occ));
+    if (dsmMeshes.length) dsmMeshes.forEach(m => shScene.add(new THREE.Mesh(m.geometry, occ))); else shScene.add(new THREE.Mesh(bg, occ));
     const r = ctx.renderer, prev = r.getRenderTarget();
     r.setRenderTarget(shRT); r.clear(); r.render(shScene, shCam); r.setRenderTarget(prev);
   }
@@ -208,37 +286,126 @@ export async function createAerial(ctx) {
 
   /* ---------- trajectoire de l'oiseau (mètres) ---------- */
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
-  const path = new THREE.CatmullRomCurve3([
-    V(-1050, 590, 1900),   /* au-dessus des nuages, au sud-ouest ; le soleil se lève devant */
-    V(-680, 470, 1480),    /* à travers la couche */
-    V(-260, 330, 1180),    /* la vieille ville, la Seine */
-    V(230, 245, 760),      /* le confluent de la Seine et de l'Yonne */
-    V(330, 190, 260),      /* on remonte le coteau boisé de Surville */
-    V(230, 185, -200),     /* on passe le pavillon, on vire */
-    V(-40, 165, -290),     /* au nord, face au sud : la cour du pavillon en ligne de mire */
+  /* y : mètres au-dessus du pavillon (la Seine est à -72 m, le plateau de Surville à 0) */
+  const path = new THREE.CatmullRomCurve3(Zn ? [
+    V(-1250, 560, 2050),   /* au-dessus des nuages, au sud-ouest ; le soleil couchant sur la gauche */
+    V(-820, 360, 1640),    /* à travers la couche, la vieille ville apparaît */
+    V(-330, 120, 1290),    /* sur les toits de la vieille ville */
+    V(60, -12, 1060),      /* on plonge sur l'Yonne */
+    V(230, -28, 830),      /* au ras de l'eau : le confluent, sous le pont */
+    V(450, -36, 720),      /* la Seine ; le coteau boisé de Surville se dresse devant */
+    V(400, 40, 420),       /* on remonte le coteau, au-dessus des arbres */
+    V(250, 95, 170),       /* la crête : le plateau, le pavillon en vue */
+    V(60, 130, -150),      /* on passe le pavillon, on vire au nord */
+    V(-60, 150, -270),     /* au nord, face au sud : la cour du pavillon en ligne de mire */
     V(-10, 140, -140),
-    V(0, 105, -45)         /* au-dessus du pavillon, regard plongeant : la vraie photo à 0,32 m, puis le piqué */
+    V(0, 105, -45)         /* au-dessus du pavillon, regard plongeant, puis le piqué */
+  ] : [
+    V(-1050, 590, 1900), V(-680, 470, 1480), V(-260, 330, 1180), V(230, 245, 760), V(330, 190, 260),
+    V(230, 185, -200), V(-40, 165, -290), V(-10, 140, -140), V(0, 105, -45)
   ], false, 'centripetal');
   const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
   const world = v => G.localToWorld(v);
   G.updateMatrixWorld(true);
 
+  /* ---------- repères : les vrais noms (OpenStreetMap), posés sur les lieux, le temps de les survoler ---------- */
+  const MARKS = [
+    { n: 'Montereau-Fault-Yonne', x: -90.7, z: 1335.5, up: 0, w: [.02, .2], wt: [.08, .3], big: true },
+    { n: 'Collégiale Notre-Dame et Saint-Loup', x: 95.9, z: 1147.6, up: 30, w: [.17, .37], wt: [.22, .45] },
+    { n: 'L’Yonne', x: 150, z: 1300, up: 2, w: [.2, .4], wt: [.14, .42] },
+    { n: 'La Seine', x: 480, z: 780, up: 2, w: [.36, .56], wt: [.14, .5] },
+    { n: 'Gare de Montereau', x: -1055.7, z: 1950.7, up: 4, w: [0, 0], wt: [.1, .3] },
+    { n: 'Surville', x: 250, z: 60, up: 20, w: [0, 0], wt: [.42, .62], big: true, area: true },
+    { n: 'Digitale Académie', x: 0, z: 0, up: 8, w: [.66, .9], wt: [.6, .95], big: true }
+  ];
+  const mk = document.createElement('div'); mk.className = 'v2-marks'; mk.setAttribute('aria-hidden', 'true');
+  ctx.root ? ctx.root.append(mk) : document.getElementById('da-experience').append(mk);
+  MARKS.forEach(m => {
+    m.el = document.createElement('div'); m.el.className = 'v2-mark' + (m.big ? ' v2-mark--big' : '');
+    m.el.innerHTML = '<span>' + m.n + '</span>'; if (m.area) m.el.classList.add('v2-mark--area'); mk.append(m.el);
+    m.p = new THREE.Vector3(m.x, height(m.x, m.z) + m.up, m.z);
+  });
+  const pv = new THREE.Vector3();
+  const marks = (k, on, mode) => {
+    mk.style.display = on ? '' : 'none'; if (!on) return;
+    const cv = ctx.renderer.domElement, W = cv.clientWidth, H = cv.clientHeight;
+    MARKS.forEach(m => {
+      const w = mode === 'terr' ? m.wt : m.w, a = ss(w[0], w[0] + .04, k) * (1 - ss(w[1] - .04, w[1], k));
+      if (a < .01) { m.el.style.opacity = 0; return; }
+      pv.copy(m.p); G.localToWorld(pv); const d = pv.distanceTo(ctx.camera.position); pv.project(ctx.camera);
+      const vis = pv.z < 1 && Math.abs(pv.x) < .92 && Math.abs(pv.y) < .9 ? 1 : 0;
+      m.el.style.opacity = (a * vis * (1 - ss(900, 1400, d / SCALE))).toFixed(3);
+      m.el.style.transform = `translate3d(${((pv.x * .5 + .5) * W).toFixed(1)}px,${((.5 - pv.y * .5) * H).toFixed(1)}px,0)`;
+    });
+  };
+
+  /* ---------- « Nous trouver » : survol à la manière d'un globe virtuel, du confluent jusqu'au pavillon ---------- */
+  const tPath = new THREE.CatmullRomCurve3([
+    V(-150, 1150, 1950),   /* très haut : toute la ville, le confluent au centre */
+    V(450, 760, 1780),
+    V(880, 420, 1300),     /* on tourne autour du confluent et de la vieille ville */
+    V(860, 270, 760),
+    V(560, 200, 380),      /* on remonte vers Surville */
+    V(280, 150, 60),
+    V(110, 115, -190),     /* on tourne autour du pavillon */
+    V(-150, 90, -150),
+    V(-170, 70, 70),
+    V(-40, 55, 150),
+    V(0, 42, 80)           /* face au pavillon, on plonge dans le faisceau */
+  ], false, 'centripetal');
+  const CONF = V(170, -66, 1000), PAV = V(0, 4, 0);
+  const cam2 = k => {
+    G.updateMatrixWorld(true);
+    const p = tPath.getPoint(k); p.y = Math.max(p.y, height(p.x, p.z) + 25);
+    const look = CONF.clone().lerp(PAV, eIO(ss(.3, .62, k)));
+    return { pos: world(p), look: world(look) };
+  };
+  function eIO(x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  /* le faisceau doré sur le pavillon */
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(7, 9, 420, 32, 1, true), new THREE.ShaderMaterial({
+    uniforms: { uT: { value: 0 }, uI: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, toneMapped: false,
+    vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader: `uniform float uT,uI;varying vec2 vUv;void main(){float a=pow(1.-vUv.y,2.2)*(.75+.25*sin(vUv.y*40.-uT*3.));gl_FragColor=vec4(vec3(1.,.78,.4)*a*uI,1.);}`
+  }));
+  beam.position.set(0, height(0, 0) + 210, 0); beam.visible = false; G.add(beam);
+  /* le fil d'or : du confluent jusqu'au pavillon, posé sur la vraie surface */
+  const filPts = new THREE.CatmullRomCurve3([V(185, 0, 960), V(212, 0, 890), V(310, 0, 700), V(270, 0, 450), V(130, 0, 210), V(0, 0, 0)]).getSpacedPoints(400);
+  const fP = [], fI = [], FW = 3.2;
+  filPts.forEach((q, i) => {
+    const n = filPts[Math.min(filPts.length - 1, i + 1)].clone().sub(filPts[Math.max(0, i - 1)]).setY(0).normalize(), sd = V(-n.z, 0, n.x);
+    const y = height(q.x, q.z) + 3;
+    fP.push(q.x + sd.x * FW, y, q.z + sd.z * FW, q.x - sd.x * FW, y, q.z - sd.z * FW);
+    if (i) { const a = (i - 1) * 2; fI.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  });
+  const filGeo = new THREE.BufferGeometry(); filGeo.setAttribute('position', new THREE.Float32BufferAttribute(fP, 3)); filGeo.setIndex(fI);
+  const fil = new THREE.Mesh(filGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color('#FFD600').multiplyScalar(2.2), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }));
+  fil.visible = false; fil.frustumCulled = false; G.add(fil);
+  const terr = (k, t, on) => {
+    beam.visible = fil.visible = on; if (!on) return;
+    beam.material.uniforms.uT.value = t; beam.material.uniforms.uI.value = ss(.5, .7, k) * (1.1 + .25 * Math.sin(t * 2));
+    filGeo.setDrawRange(0, Math.floor(ss(.3, .7, k) * fI.length / 6) * 6);
+  };
+
   return {
-    group: G, height, sun: SUN,
+    group: G, height, sun: SUN, marks, cam2, terr,
     /* k 0..1 le long du vol ; renvoie position et regard (monde) */
     cam(k) {
       G.updateMatrixWorld(true);
       /* temps égal par étape (et non par distance) : rapide en altitude, lent près du sol, comme un vrai vol */
-      const p = path.getPoint(k), ahead = path.getPoint(Math.min(1, k + .03));
+      const p = path.getPoint(k), ahead = path.getPoint(Math.min(1, k + .025));
+      /* jamais dans un arbre ni un toit : 22 m de garde au-dessus de la vraie surface */
+      p.y = Math.max(p.y, height(p.x, p.z) + 22); ahead.y = Math.max(ahead.y, height(ahead.x, ahead.z) + 22);
       const h = p.y - height(p.x, p.z);
-      /* l'oiseau regarde devant lui et vers le bas (plus il est haut, plus il plonge le regard), puis fixe la cour */
-      tmp.copy(ahead).sub(p); tmp.y = 0; tmp.normalize();
-      const look = p.clone().addScaledVector(tmp, Math.max(60, h * 1.2)); look.y = height(look.x, look.z);
-      look.lerp(V(0, 2, 6), ss(.66, .86, k));   /* le pavillon, au centre de l'image, bien avant la plongée */
+      /* l'oiseau regarde devant lui ; haut, il plonge le regard ; au ras de l'eau, il regarde l'horizon */
+      tmp.copy(ahead).sub(p); const climb = tmp.y; tmp.y = 0; tmp.normalize();
+      const dist = 110 + h * 1.1, look = p.clone().addScaledVector(tmp, dist);
+      const low = 1 - ss(60, 220, h);
+      look.y = (1 - low) * height(look.x, look.z) + low * (p.y + climb * 2.2 - 12);
+      look.lerp(V(0, 2, 6), ss(.8, .92, k));   /* le pavillon, au centre de l'image, bien avant la plongée */
       return { pos: world(p.clone()), look: world(look), h };
     },
     update(on, t, camPos) {
-      G.visible = dome.visible = on; if (!on) return;
+      G.visible = dome.visible = on; if (!on) { mk.style.display = 'none'; return; }
       dome.position.copy(camPos);
       G.worldToLocal(U.uCam.value.copy(camPos));
       CU.uTime.value = t;

@@ -32,7 +32,7 @@ export async function create(ctx, el) {
 
   /* ---------- 3 000 points : cibles « 3 000+ » (texte) et « fibre » (sol) ---------- */
   const N = 3000;
-  const TXT = V(6.5, 1.55, -5.7);
+  const TXT = V(6.5, 1.55, -5.7), capV = V(0, 0, 0);
   /* sur un écran en hauteur, le chiffre est plus petit pour tenir dans le cadre */
   const txt = ctx.buildText(ctx.fontHeavy, '3 000+', ctx.mobile ? .56 : 1.05, .04, 0, new THREE.MeshBasicMaterial());
   const holder = new THREE.Object3D(); holder.position.copy(TXT); holder.lookAt(SHOTS[2][1]); holder.updateMatrixWorld(true);
@@ -163,6 +163,14 @@ export async function create(ctx, el) {
       const act = p < .3 ? -1 : p < .55 ? 0 : p < .7 ? 1 : p < .86 ? 2 : -1;
       if (act !== act0) { if (act >= 0 && isCurrent) ctx.cue('borne'); act0 = act; }
       facts.forEach((li, i) => li.classList.toggle('is-on', i === act));
+      /* la légende de « 3 000+ » se tient sous le chiffre de lumière, pas dans un coin */
+      if (act === 0 && facts[0]) {
+        const box = facts[0].parentElement.getBoundingClientRect(), cv = ctx.renderer.domElement.getBoundingClientRect();
+        capV.copy(TXT).y -= ctx.mobile ? .42 : .78; capV.project(ctx.camera);
+        const x = cv.left + (capV.x * .5 + .5) * cv.width, y = cv.top + (.5 - capV.y * .5) * cv.height;
+        facts[0].style.left = (x - box.left - facts[0].offsetWidth / 2).toFixed(1) + 'px';
+        facts[0].style.bottom = 'auto'; facts[0].style.top = (y - box.top).toFixed(1) + 'px';
+      }
       if (spaces) spaces.style.opacity = eOut(ss(.9, .98, p));
 
       if (isCurrent) {

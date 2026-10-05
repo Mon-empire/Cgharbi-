@@ -1,44 +1,25 @@
 /*
   ACCOMPAGNEMENT · d'abord le silence : une vraie photo, la lumière douce, « Tu n'étudies pas seul » — le titre passe derrière
   l'étudiante du premier plan, deux fils de lumière (jaune, cyan : les deux coachs) traversent la salle.
-  Puis les lanternes dans l'atrium.
-  Les sept ateliers sont des lanternes qui quittent le sol de la bibliothèque et montent vers la verrière.
+  Puis la salle de lecture de la George Peabody Library (P. Gillespie, CC BY 2.0), en profondeur : les sept ateliers sont
+  des lanternes qui quittent les tables de lecture et montent vers la verrière ; la caméra s'élève avec elles.
   Les deux coachs sont deux lucioles (jaune, cyan) qui accompagnent la lanterne qui s'élève.
 */
 export async function create(ctx, el) {
-  const { THREE, ss, eOut, damp, library } = ctx;
-  const G = new THREE.Group(); G.visible = false; ctx.scene.add(G);
+  const { THREE, ss, eOut, eIO, damp, library, shot } = ctx;
+  const G = new THREE.Group(); G.visible = false;
   const items = [...el.querySelectorAll('.v2-work li')];
   const supports = [...el.querySelectorAll('.v2-human__list > div')];
-  const N = items.length, C = library.center, TOP = library.TOP;
-  const rnd = (a, b) => a + Math.random() * (b - a);
-  const paper = new THREE.MeshStandardMaterial({ color: '#FFCF8A', emissive: '#FF9F45', emissiveIntensity: .8, roughness: .9, side: THREE.DoubleSide, transparent: true, opacity: .95 });
-  const lanterns = items.map((li, i) => {
-    const g = new THREE.Group(); g.scale.setScalar(1.5);
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(.55, .45, 1.2, 16, 1, true), paper.clone()); g.add(body);
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(.55, .03, 6, 24), new THREE.MeshStandardMaterial({ color: '#3A2A22' })); rim.rotation.x = Math.PI / 2; rim.position.y = .6; g.add(rim);
-    const flame = new THREE.Mesh(new THREE.SphereGeometry(.12, 12, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color('#FFE2A0').multiplyScalar(6), toneMapped: false })); flame.position.y = -.45; g.add(flame);
-    const label = ctx.buildText(ctx.fontMid, li.textContent.trim(), .16, .02, 0, ctx.textMat('#FFF4E0', .6)); label.position.y = -.95; g.add(label);
-    const a = i / N * Math.PI * 2;
-    const start = C.clone().add(new THREE.Vector3(Math.cos(a) * 6.5, 1.2, Math.sin(a) * 6.5));
-    const re = rnd(3.2, 5);   /* assez loin des galeries pour que la caméra garde quatre à six mètres de recul */
-    const end = C.clone().add(new THREE.Vector3(Math.cos(a + .6) * re, TOP * rnd(.55, .9), Math.sin(a + .6) * re));
-    g.position.copy(start); G.add(g);
-    return { li, g, body, label, flame, start, end, ph: rnd(0, 6), on: 0 };
-  });
-  const coach = (color, phase) => {
-    const c = new THREE.Color(color);
-    const orb = new THREE.Mesh(new THREE.SphereGeometry(.2, 20, 20), new THREE.MeshBasicMaterial({ color: c.clone().multiplyScalar(7), toneMapped: false }));
-    const TR = 110, pos = new Float32Array(TR * 3), cols = new Float32Array(TR * 3);
-    for (let i = 0; i < TR; i++) { const k = (1 - i / TR) ** 1.5 * 3; cols.set([c.r * k, c.g * k, c.b * k], i * 3); }
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-    const trail = new THREE.Line(geo, new THREE.LineBasicMaterial({ vertexColors: true, toneMapped: false, transparent: true, blending: THREE.AdditiveBlending }));
-    trail.frustumCulled = false; G.add(orb, trail);
-    return { orb, trail, pos, TR, phase, init: false };
-  };
-  const coaches = [coach('#FFD600', 0), coach('#00BBDB', Math.PI)];
+  const N = items.length, IMG = 'b15';
+  shot.load(IMG);
+  const POSE = { pos: library.center.clone().add(new THREE.Vector3(0, 3, 9)), look: library.center.clone().add(new THREE.Vector3(0, 6, 0)) };
+  /* départ : les tables de lecture (mesurées sur la photo) ; arrivée : sous la verrière, en éventail */
+  const START = [[.4, .86], [.6, .85], [.43, .81], [.57, .8], [.46, .78], [.54, .78], [.5, .77]];
+  const END = [[.4, .46], [.6, .4], [.44, .3], [.57, .26], [.47, .38], [.54, .2], [.5, .32]];
+  const lanterns = items.map((li, i) => ({ li, s: START[i % 7], e: END[i % 7], ph: i * 1.7, on: 0, d: null }));
+  const trails = [[], []];
   /* la rupture (photo réelle) occupe le premier quart du chapitre ; les lanternes partent ensuite */
-  const Q0 = .3, launchAt = i => Q0 + i * .08;
+  const Q0 = .3, launchAt = i => Q0 + .05 + i * .075;
   const photo = el.querySelector('.v2-human__photo'), stage = el.querySelector('.v2-stage');
   const threads = photo ? [...photo.querySelectorAll('.v2-thread')].map((path, k) => {
     const L = path.getTotalLength(); path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
@@ -46,36 +27,16 @@ export async function create(ctx, el) {
   }) : [];
   let quietSaid = false;
   let active = -1;
+  const lift = (o, i, p) => eOut(ss(launchAt(i), launchAt(i) + .28, p));
   return {
     group: G,
-    cam(p, m) {
-      /* la caméra accompagne la lanterne qui s'élève : légèrement en retrait, côté galerie, jamais hors de l'atrium */
-      const f = Math.max(0, (p - Q0) / .08), i0 = Math.min(N - 1, Math.floor(f)), i1 = Math.min(N - 1, i0 + 1), u = ss(.55, 1, f - i0);
-      const at = i => lanterns[i].start.clone().lerp(lanterns[i].end, eOut(ss(launchAt(i), launchAt(i) + .3, p)));
-      const T = at(i0).lerp(at(i1), u);
-      const rel = T.clone().sub(C), a = Math.atan2(rel.z, rel.x) + .5, r = 9.3;
-      return {
-        pos: new THREE.Vector3(C.x + Math.cos(a) * r + m.sx * .6, T.y + .9 + m.sy * .5, C.z + Math.sin(a) * r),
-        look: T.clone().add(new THREE.Vector3(0, -.1, 0))
-      };
-    },
+    cam() { return POSE; },
     update(p, t, dt, m, isCurrent) {
-      G.visible = library.group.visible;
       let idx = 0;
-      lanterns.forEach((o, i) => {
-        const l = eOut(ss(launchAt(i), launchAt(i) + .3, p));
-        if (p >= launchAt(i)) idx = i;
-        o.g.position.copy(o.start).lerp(o.end, l);
-        o.g.position.x += Math.sin(t * .6 + o.ph) * .3 * l; o.g.position.z += Math.cos(t * .5 + o.ph) * .3 * l;
-        o.g.rotation.y = Math.sin(t * .3 + o.ph) * .4;
-        o.label.lookAt(ctx.camera.position);
-        o.on = damp(o.on, i === idx && p >= launchAt(i) ? 1 : 0, 4, dt);
-        o.body.material.emissiveIntensity = .6 + 1 * o.on;
-        o.flame.scale.setScalar(.8 + .3 * Math.sin(t * 9 + o.ph) + .6 * o.on);
-      });
+      lanterns.forEach((o, i) => { if (p >= launchAt(i)) idx = i; o.on = damp(o.on, i === idx && p >= launchAt(i) ? 1 : 0, 4, dt); });
       if (idx !== active) { if (active >= 0 && isCurrent) ctx.cue('borne'); active = idx; items.forEach((li, i) => li.classList.toggle('is-on', i === idx && p >= launchAt(0))); }
       supports.forEach((d, i) => d.classList.toggle('is-on', p > Q0 + .02 + i * .05));
-      /* le silence : la scène 3D s'éteint, la vraie salle apparaît, le titre glisse derrière l'étudiante */
+      /* le silence : la scène s'éteint, la vraie salle apparaît, le titre glisse derrière l'étudiante */
       const quiet = p < Q0 - .04;
       el.classList.toggle('is-quiet', quiet);
       if (photo) {
@@ -91,14 +52,45 @@ export async function create(ctx, el) {
       }
       if (isCurrent && quiet && p > .03 && !quietSaid) { quietSaid = true; ctx.cue('calme'); }
       if (isCurrent && !quiet && quietSaid) { quietSaid = false; ctx.cue('reprise'); }
-      const target = lanterns[idx].g.position;
-      coaches.forEach((c, k) => {
-        const a = t * 1.1 + c.phase, x = target.x + Math.cos(a) * 3.2, y = target.y + Math.sin(a * 1.7 + k) * 1.2, z = target.z + Math.sin(a) * 3.2;
-        c.orb.position.set(x, y, z);
-        if (!c.init) { for (let i = 0; i < c.TR; i++) c.pos.set([x, y, z], i * 3); c.init = true; }
-        c.pos.copyWithin(3, 0, (c.TR - 1) * 3); c.pos.set([x, y, z], 0); c.trail.geometry.attributes.position.needsUpdate = true;
+      /* ----- la salle de lecture en profondeur : la caméra s'élève avec la lanterne ----- */
+      const u = ss(Q0 - .06, 1, p), portrait = innerWidth < innerHeight;
+      const at = [.5 + m.sx * .01, .7 - .42 * eIO(ss(Q0, .95, p))], zoom = (portrait ? 1.08 : 1.2) + .25 * eIO(u);
+      const shown = shot.show({ a: IMG, pa: { at, zoom, T: [-m.sx * .03, (at[1] - .7) * .6], dolly: .5 * eIO(u), d0: .25, focus: .55, dof: .14 },
+        fade: ss(Q0 - .06, Q0 + .02, p), warm: .55, expo: 1.12, rays: .28, sun: [.5, -.2], vig: .6, lift: .3 }, t, isCurrent);
+      if (!shown || p < Q0 - .06) return;
+      const g = shot.touch(), vis = ss(Q0 - .02, Q0 + .04, p) * (1 - ss(.97, 1, p));
+      g.globalCompositeOperation = 'lighter';
+      const pos = lanterns.map((o, i) => {
+        if (o.d == null) o.d = shot.depthAt('a', o.s[0], o.s[1]);
+        const l = lift(o, i, p), uu = o.s[0] + (o.e[0] - o.s[0]) * l + Math.sin(t * .6 + o.ph) * .006 * l, vv = o.s[1] + (o.e[1] - o.s[1]) * l + Math.sin(t * .9 + o.ph) * .004;
+        return shot.project('a', uu, vv - .012, o.d);  /* [x, y, disparité] */
       });
-      if (isCurrent) { const { key, rim } = ctx.lights; key.position.copy(coaches[0].orb.position); key.color.set('#FFD600'); key.intensity = 25; rim.position.copy(coaches[1].orb.position); rim.color.set('#00BBDB'); rim.intensity = 25; }
+      /* lanternes de papier : halo chaud qui éclaire la salle, corps lumineux ; la lanterne active brille davantage.
+         Pas d'étiquette ici : la liste des ateliers (à droite) nomme celle qui s'élève */
+      lanterns.forEach((o, i) => {
+        if (p < launchAt(i) - .04) return;
+        const q = pos[i], born = ss(launchAt(i) - .04, launchAt(i), p), sz = (16 + 34 * Math.max(0, q[2] - .25)) * (ctx.mobile ? .75 : 1) * Math.min(1.4, innerHeight / 800), fl = .88 + .12 * Math.sin(t * 9 + o.ph);
+        const R = sz * (5 + 2 * o.on), gr = g.createRadialGradient(q[0], q[1], 0, q[0], q[1], R);
+        gr.addColorStop(0, `rgba(255,190,110,${(.32 + .25 * o.on) * fl * vis * born})`); gr.addColorStop(.35, `rgba(255,140,50,${.12 * vis * born})`); gr.addColorStop(1, 'rgba(255,120,40,0)');
+        g.fillStyle = gr; g.beginPath(); g.arc(q[0], q[1], R, 0, 7); g.fill();
+        const w = sz * .9, h = sz * 1.25, body = g.createLinearGradient(q[0], q[1] - h, q[0], q[1] + h);
+        body.addColorStop(0, `rgba(255,200,130,${.9 * vis * born})`); body.addColorStop(.6, `rgba(255,236,190,${vis * born})`); body.addColorStop(1, `rgba(255,170,90,${.9 * vis * born})`);
+        g.fillStyle = body; g.beginPath(); g.ellipse(q[0], q[1], w, h, 0, 0, 7); g.fill();
+        g.globalCompositeOperation = 'source-over'; g.globalAlpha = .55 * vis * born; g.fillStyle = '#3A2414';
+        g.fillRect(q[0] - w * .55, q[1] - h - 1.5, w * 1.1, 2.5); g.fillRect(q[0] - w * .45, q[1] + h - 1, w * .9, 2);
+        g.globalAlpha = 1; g.globalCompositeOperation = 'lighter';
+      });
+      /* les deux coachs : deux lucioles qui tournent autour de la lanterne qui s'élève */
+      const c0 = pos[idx];
+      ['#FFD600', '#00BBDB'].forEach((col, k) => {
+        const a = t * 1.3 + k * Math.PI, R = 46 + 10 * Math.sin(t * .7 + k), x = c0[0] + Math.cos(a) * R, y = c0[1] + Math.sin(a * 1.4 + k) * R * .45;
+        const tr = trails[k]; tr.unshift([x, y]); if (tr.length > 26) tr.pop();
+        g.strokeStyle = col; g.lineCap = 'round';
+        for (let j = 1; j < tr.length; j++) { g.globalAlpha = (1 - j / tr.length) * .8 * vis; g.lineWidth = 2.4 * (1 - j / tr.length) + .4; g.beginPath(); g.moveTo(tr[j - 1][0], tr[j - 1][1]); g.lineTo(tr[j][0], tr[j][1]); g.stroke(); }
+        g.globalAlpha = vis; g.fillStyle = col; g.beginPath(); g.arc(x, y, 3.2, 0, 7); g.fill();
+        g.globalAlpha = .35 * vis; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill();
+      });
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     }
   };
 }

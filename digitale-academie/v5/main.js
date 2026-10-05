@@ -249,10 +249,14 @@ async function start() {
   /* les intérieurs en photographie : plus aucune pièce du pavillon modélisée à l'image */
   const { createBackdrop } = await import('./world/backdrop.js');
   const backdrop = await createBackdrop(ctx); ctx.backdrop = backdrop;
+  /* la bibliothèque en photographies profondes (vraies photos + profondeur estimée : parallaxe réelle) */
+  ctx.assets = ASSETS; ctx.root = R;
+  const { createDepthShot } = await import('./world/depthshot.js');
+  const shot = await createDepthShot(ctx); ctx.shot = shot;
   /* on est l'oiseau : ses ailes et son dos, attachés à la caméra */
   /* le vrai Montereau vu du ciel (orthophotos IGN, relief réel, bâtiments OSM) */
   const { createAerial } = await import('./world/aerial.js');
-  const aerial = await createAerial(ctx);
+  const aerial = await createAerial(ctx); ctx.aerial = aerial;
   const { createWings, createStreaks, createDust } = await import('./world/wings.js');
   const wings = createWings(ctx, await tex('aile-goeland.png')), streaks = createStreaks(ctx), dustMotes = createDust(ctx);
   camera.add(wings.group, streaks.group, dustMotes.group); scene.add(camera);
@@ -313,8 +317,11 @@ async function start() {
   const beats = (k, a, b) => ss(a, a + .03, k) * (1 - ss(b - .03, b, k));
   const wingState = p0 => {
     if (p0 < SKY) {
-      const k = p0 / SKY, dive = ss(.84, .95, k);
-      return { flap: (.7 * Math.max(beats(k, 0, .14), beats(k, .46, .58)) + .25) * (1 - dive), freq: 2.1, gust: .25 + .6 * dive, fold: .55 * dive, bank: bank * 1.5 };
+      /* le vol réel : plané au-dessus des nuages, piqué sur la vieille ville (ailes à demi repliées), ressource au ras de l'Yonne,
+         plané sur la Seine, battements puissants pour remonter le coteau de Surville, plané sur le plateau, virage, piqué final */
+      const k = p0 / SKY, dive = Math.max(ss(.13, .2, k) * (1 - ss(.29, .35, k)), ss(.88, .96, k));
+      const flap = Math.max(beats(k, 0, .07), .5 * beats(k, .36, .44), 1.15 * beats(k, .5, .67), .8 * beats(k, .74, .81));
+      return { flap: (.75 * flap + .22) * (1 - dive), freq: 2.1 + .5 * beats(k, .5, .67), gust: .25 + .6 * dive, fold: .55 * dive, bank: bank * 1.5 };
     }
     const p = heroV(p0), flare = ss(.4, .56, p), fold = ss(.56, .66, p);   /* posé et ailes repliées avant que le slogan ne monte */
     return { flap: .7 * Math.max(beats(p, 0, .14), beats(p, .3, .38)) + .1 + .45 * flare * (1 - fold), freq: 2.2 + .9 * flare, gust: .3 * (1 - flare), flare, fold: Math.max(fold, p0 >= 1 ? 1 : 0), bank: bank * 1.5 };
@@ -452,7 +459,7 @@ async function start() {
     fade = damp(fade, 0, 2.2, dt); fx.uniforms.uFade.value = fade;
 
     /* le rêve n'existe que du fond de la salle d'étude jusqu'à la sortie par la verrière */
-    const libOn = ['asc', 'walk', 'human'].includes(center) || (center === 'campus' && pc > .78) || (center === 'terr' && pc < .3);
+    const libOn = ['asc', 'walk', 'human'].includes(center) || (center === 'campus' && pc > .78);
     library.group.visible = libOn;
     /* papier peint : intact avant la visite, effacé une fois qu'on est passé de l'autre côté (même en sautant par le menu) */
     if (center !== 'campus') pavilion.dissolveMural(order[center] > order.campus ? 1 : 0);
@@ -482,15 +489,19 @@ async function start() {
       if (SC.terr) SC.terr.group.visible = C.terr.vis || (center === 'finale' && pc < BL);
       /* le ciel de l'ouverture : la ville entière en contrebas, le faisceau sur le pavillon s'éteint dans la plongée */
       const sk = pRaw / SKY;
-      aerial.update(sky, t, camera.position); sky3.group.visible = !sky;
+      const terrSky = center === 'terr';
+      aerial.update(sky || terrSky, t, camera.position); sky3.group.visible = !(sky || terrSky); aerial.marks(terrSky ? ss(0, .97, pc) : sk, sky || terrSky, terrSky ? 'terr' : 'hero');
+      if (terrSky) { moon.color.set('#FFE0B8'); moon.intensity = 2.2; hemi.intensity = .9; }
       moon.color.set(sky ? '#FFE0B8' : '#B9C6FF'); if (sky) { moon.intensity = 2.2; hemi.intensity = .9; }
       /* plongée dans la neige : la nuit se referme (bleu nuit, jamais de blanc), on ressort au ras de l'allée */
       if (center === 'hero') fx.uniforms.uBlack.value = sky ? ss(.9, .99, sk) : 1 - ss(0, .04, p);
       /* son du vol : le vent monte avec la vitesse ; un souffle pour la plongée, des battements pour l'atterrissage */
       if (center === 'hero') {
-        const wind = sky ? .5 + .5 * ss(.8, .97, sk) : .55 * (1 - ss(.45, .7, p)), bright = sky ? .25 + .75 * ss(.82, .97, sk) : .2 * (1 - ss(.3, .6, p));
+        const sdive = Math.max(ss(.13, .22, sk) * (1 - ss(.3, .38, sk)), ss(.86, .97, sk));
+        const wind = sky ? .5 + .5 * sdive : .55 * (1 - ss(.45, .7, p)), bright = sky ? .25 + .75 * sdive : .2 * (1 - ss(.3, .6, p));
         if (Math.abs(wind - flightSnd.wind) > .03 || Math.abs(bright - flightSnd.bright) > .03 || now - flightSnd.at > 400) { flightSnd = { wind, bright, at: now }; R.dispatchEvent(new CustomEvent('da:flight', { detail: { wind, bright } })); }
-        if (sky && sk > .84 && !diveSaid) { diveSaid = true; cue('plongee'); } if (sky && sk < .4) diveSaid = false;
+        const dv = sky ? (sk > .86 ? 2 : sk > .13 && sk < .3 ? 1 : 0) : 0;
+        if (dv && diveSaid !== dv) { diveSaid = dv; cue('plongee'); } if (sky && sk < .1) diveSaid = 0;
         if (!sky && p > .4 && !landSaid) { landSaid = true; cue('atterrissage'); } if (sky || p < .3) landSaid = false;
         fx.uniforms.uRad.value = sky ? .011 * ss(.9, .985, sk) : 0;
       } else if (flightSnd.wind > 0) { flightSnd = { wind: 0, bright: 0, at: now }; R.dispatchEvent(new CustomEvent('da:flight', { detail: { wind: 0, bright: 0 } })); }
@@ -554,14 +565,15 @@ async function start() {
     }
 
     /* ----- chapitres ----- */
-    backdrop.reset(); backdrop.fit();
+    backdrop.reset(); backdrop.fit(); shot.reset(); shot.fit(); shot.clear();
     for (const id in SC) { const c = C[id]; if (id !== 'hero' && c && (c.vis || id === center)) SC[id].update(c.p, t, dt, mouse, id === center); else if (SC[id].rest) SC[id].rest(); }
     if (backdrop.on) { pavilion.exterior.visible = false; pavilion.interior.visible = false; }
+    if (shot.on && shot.U.uFade.value > .99) { library.group.visible = false; pavilion.exterior.visible = false; pavilion.interior.visible = false; }
     if (SC.finale) SC.finale.group.visible = C.finale.vis || center === 'finale';
     /* livres : arrachés du mur à la fin de la visite, en vol dans l'atrium, calmes près des lanternes, puis aspirés par la verrière */
-    flock.update(t, center === 'campus' ? { on: pc > .87, burst: ss(.89, .995, pc) }
-      : ['asc', 'walk', 'human'].includes(center) ? { on: true, calm: center === 'human' ? 1 : 0 }
-      : center === 'terr' ? { on: pc < .3, lift: eIO(pc / .3) * 70 } : { on: false });   /* le logo du final ne survit pas quand on remonte */
+    flock.update(t, center === 'campus' ? { on: pc > .87 && !shot.on, burst: ss(.89, .995, pc) }
+      : ['asc', 'walk', 'human'].includes(center) ? { on: !shot.on, calm: center === 'human' ? 1 : 0 }
+      : { on: false });   /* le logo du final ne survit pas quand on remonte */
     /* le papier peint suit la vie de la bibliothèque (rendu réduit, quelques images par seconde) */
     if (center === 'campus' && ++muralTick % 6 === 0) renderMural();
 
