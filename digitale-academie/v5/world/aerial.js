@@ -175,7 +175,10 @@ export async function createAerial(ctx) {
     const buildBati = async () => {
       const [buf] = await Promise.all([fetch(Zn.outer.dir + 'bati.bin').then(r => r.ok ? r.arrayBuffer() : null).catch(() => null)]);
       const bm = Zn.meta.bati; if (!buf || !bm) return;
-      const Pp = new Float32Array(buf, 0, bm.nv * 3), Ii = new Uint32Array(buf, bm.nv * 12, bm.ni), Kk = new Uint8Array(buf, bm.nv * 12 + bm.ni * 4, bm.nv);
+      /* x, z au décimètre (int16), altitude au centimètre au-dessus de 40 m (uint16), indices uint32, nature (toit/mur) */
+      const nv = bm.nv, X = new Int16Array(buf.slice(0, nv * 2)), Y = new Uint16Array(buf.slice(nv * 2, nv * 4)), Z = new Int16Array(buf.slice(nv * 4, nv * 6));
+      const Ii = new Uint32Array(buf.slice(nv * 6, nv * 6 + bm.ni * 4)), Kk = new Uint8Array(buf, nv * 6 + bm.ni * 4, nv);
+      const Pp = new Float32Array(nv * 3); for (let i = 0; i < nv; i++) { Pp[i * 3] = X[i] / 10; Pp[i * 3 + 1] = Y[i] / 100 + 40; Pp[i * 3 + 2] = Z[i] / 10; }
       const groups = tileTex.map(() => ({ P: [], K: [], Gh: [] }));
       const pick = (x, z) => { let best = -1; for (let i = 0; i < tileTex.length; i++) { const t = tileTex[i]; if (inRect(t.inner, x, z)) { if (t.core) return i; if (best < 0) best = i; } } return best; };
       const gcache = new Map();
@@ -429,7 +432,11 @@ export async function createAerial(ctx) {
   }));
   beam.position.set(0, height(0, 0) + 210, 0); beam.visible = false; G.add(beam);
   /* le fil d'or : du confluent jusqu'au pavillon, posé sur la vraie surface */
-  const filPts = new THREE.CatmullRomCurve3([V(185, 0, 960), V(212, 0, 890), V(310, 0, 700), V(270, 0, 450), V(130, 0, 210), V(0, 0, 0)]).getSpacedPoints(400);
+  /* le fil d'or suit les vraies rues : plus court chemin OpenStreetMap du pont de Seine à la rue Honoré de Balzac (ville/route.json) */
+  const route = await fetch(ASSETS + 'ville/route.json').then(r => r.ok ? r.json() : null).catch(() => null);
+  const routePts = route && route.pts.length > 1 ? route.pts.map(([x, z]) => V(x, 0, z)).concat([V(0, 0, 0)]) : [V(185, 0, 960), V(212, 0, 890), V(0, 0, 0)];
+  const rc = new THREE.CurvePath(); for (let i = 0; i < routePts.length - 1; i++) if (routePts[i].distanceTo(routePts[i + 1]) > .01) rc.add(new THREE.LineCurve3(routePts[i], routePts[i + 1]));
+  const filPts = rc.getSpacedPoints(900);
   const fP = [], fI = [], FW = 1.3;
   filPts.forEach((q, i) => {
     const n = filPts[Math.min(filPts.length - 1, i + 1)].clone().sub(filPts[Math.max(0, i - 1)]).setY(0).normalize(), sd = V(-n.z, 0, n.x);
