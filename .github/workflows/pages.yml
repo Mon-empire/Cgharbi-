@@ -1,4 +1,5 @@
-# Publie le site (digitale-academie/v5) sur GitHub Pages à chaque mise à jour de la branche de travail.
+# Publie le site (digitale-academie/v5) sur la branche gh-pages, servie par GitHub Pages :
+# https://mon-empire.github.io/Cgharbi-/ — à chaque mise à jour du site sur la branche de travail ou sur main.
 name: Site (GitHub Pages)
 on:
   push:
@@ -6,19 +7,19 @@ on:
     paths: ['digitale-academie/v5/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-concurrency: { group: pages, cancel-in-progress: true }
+  contents: write
+concurrency: { group: pages, cancel-in-progress: false }
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
-    environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-        with: { enablement: true }
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: digitale-academie/v5 }
-      - id: d
-        uses: actions/deploy-pages@v4
+      - name: Copier le site sur gh-pages
+        run: |
+          set -e
+          git config user.name "site-bot"; git config user.email "site-bot@users.noreply.github.com"
+          rm -rf /tmp/site && cp -r digitale-academie/v5 /tmp/site && touch /tmp/site/.nojekyll
+          git fetch origin gh-pages && git checkout -B gh-pages origin/gh-pages
+          git rm -rq . && cp -r /tmp/site/. . && git add -A
+          git commit -m "Site publié depuis ${GITHUB_SHA::7}" || { echo "rien de neuf"; exit 0; }
+          git push origin gh-pages
