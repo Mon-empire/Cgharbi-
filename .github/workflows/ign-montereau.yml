@@ -12,17 +12,20 @@ concurrency: { group: data-push, cancel-in-progress: false }
 jobs:
   ign:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - run: pip install numpy pillow pyproj laspy[lazrs] scipy
+      - run: pip install numpy pillow pyproj laspy[lazrs] scipy triangle shapely networkx
       - run: |
           if [ ! -f digitale-academie/build/ign/out/report.json ]; then python digitale-academie/build/ign/probe.py; fi
       - run: |
           if [ ! -f digitale-academie/v5/assets/ign/zones.json ]; then python digitale-academie/build/ign/build.py; fi
       - run: python digitale-academie/build/ign/lieux.py
+      - run: |
+          if [ ! -f digitale-academie/v5/assets/ville/ville.json ]; then python digitale-academie/build/ign/ville3d.py; fi
+      - run: python digitale-academie/build/ign/route.py
       - name: Repousser les résultats
         run: |
           git config user.name "ign-data-bot"; git config user.email "ign-data-bot@users.noreply.github.com"
