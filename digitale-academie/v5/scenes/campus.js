@@ -1,6 +1,6 @@
 /*
-  III · LA VISITE · des salles modélisées aux vraies salles, puis le papier peint qui devient réel
-  Cafétéria → salle informatique (reconstitution 3D) ; les néons s'éteignent. Dans le noir, un néon claque :
+  III · LA VISITE · des photographies, puis le papier peint qui devient réel
+  Accueil (image générée, à valider) → salle informatique (vraie photo) ; les néons s'éteignent. Dans le noir, un néon claque :
   on est dans la vraie salle Frida Kahlo — la photo de la Ville, en volume — et on y avance. Puis la salle Nelson Mandela,
   puis la salle d'étude. Les néons s'éteignent une dernière fois : seules restent les lampes de bureau, face au grand
   papier peint de bibliothèque. On s'en approche, il s'efface, et la bibliothèque est là, immense.
