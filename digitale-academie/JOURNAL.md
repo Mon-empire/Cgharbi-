@@ -3,6 +3,16 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.2 (5 octobre 2026) : le son du vol
+- Sons générés (ElevenLabs, effets sonores) : `vent.mp3` (boucle), `aile.mp3` (un coup d'aile), `plongee.mp3`, `atterrissage.mp3`.
+- Toujours **à la demande** (bouton « Activer le son ») : le vent monte avec la vitesse et s'éclaircit dans la plongée,
+  la musique se retire de moitié derrière lui ; chaque abattée des ailes à l'écran déclenche un coup d'aile (hauteur
+  et niveau variés) ; un souffle pour la plongée, des battements de freinage à l'atterrissage.
+- Le corps de l'oiseau porte l'œil : légère montée à chaque abattée, léger roulis.
+- Plongée : flou de vitesse radial (net au centre).
+- **Bloqué** : la vraie vue aérienne de Montereau (orthophotos IGN 20 cm + relief LiDAR HD, licence ouverte Etalab)
+  demande l'accès réseau à `data.geopf.fr`, refusé par l'environnement de travail actuel.
+
 ## Version 14.1 (5 octobre 2026) : l'ouverture « on est l'oiseau »
 Seule l'ouverture (chapitre I) change ; le reste de la v14 est intact.
 - **Lignes jaunes de la façade retirées** (arêtes « photo → espace »). Le fil au sol de l'allée reste (version d'origine).

@@ -51,8 +51,8 @@ export function createWings(ctx, tex) {
   const place = () => { L.side.position.set(-pose.x, pose.y, pose.z); Rw.side.position.set(pose.x, pose.y, pose.z); };
   place(); G.add(L.side, Rw.side);
 
-  let ph = 0;
-  return {
+  let ph = 0, prevCos = 1;
+  const api = {
     group: G, pose, place,
     /* écran en hauteur : le champ est étroit, les ailes se rapprochent du centre et reculent un peu */
     fit(aspect) { const k = Math.min(1, Math.max(0, (1.2 - aspect) / .7)); pose.x = .1 - .06 * k; pose.z = -.46 - .3 * k; pose.y = -.32 - .15 * k; place(); },
@@ -66,6 +66,12 @@ export function createWings(ctx, tex) {
       const { flap = 0, freq = 2.2, flare = 0, fold = 0, gust = 0, bank = 0 } = st;
       ph += dt * tau * freq * (.3 + .7 * Math.min(1, flap * 1.5));
       const beat = Math.sin(ph) * flap, up = Math.max(0, beat), down = Math.max(0, -beat);
+      /* début de l'abattée (ailes au plus haut) : le coup d'aile qu'on entend */
+      const cs = Math.cos(ph);
+      if (prevCos > 0 && cs <= 0 && flap > .28 && fold < .5 && api.onBeat) api.onBeat(Math.min(1, flap * 1.3));
+      prevCos = cs;
+      /* le corps monte à chaque abattée et redescend au relèvement : l'œil le ressent */
+      api.heave = -Math.sin(ph) * flap * .035 * (1 - fold); api.sway = Math.cos(ph) * flap * .006 * (1 - fold);
       const tremble = (Math.sin(t * 13.7) + Math.sin(t * 7.3 + 1)) * .006 * (.4 + gust);
       [L, Rw].forEach((w, k) => {
         const asym = k ? 1 : -1;
@@ -80,6 +86,8 @@ export function createWings(ctx, tex) {
       G.visible = fold < .995;
     }
   };
+  api.heave = 0; api.sway = 0;
+  return api;
 }
 
 /*

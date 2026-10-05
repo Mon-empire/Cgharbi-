@@ -27,10 +27,11 @@ const damp = (a, b, k, dt) => lerp(a, b, 1 - Math.exp(-k * dt));
 const status = document.createElement('p');
 status.className = 'v2-status'; status.setAttribute('role', 'status'); R.append(status);
 const say = m => { status.textContent = m; status.hidden = !m; };
-const cue = name => R.dispatchEvent(new CustomEvent('da:cue', { detail: name }));
+const cue = (name, k) => R.dispatchEvent(new CustomEvent('da:cue', { detail: { name, k } }));
 import('./core/sound.js').then(({ initSound }) => {
   const snd = initSound({ root: R, assets: ASSETS });
-  R.addEventListener('da:cue', e => snd.cue(e.detail));
+  R.addEventListener('da:cue', e => snd.cue(e.detail.name, e.detail.k));
+  R.addEventListener('da:flight', e => snd.flight(e.detail));
 }).catch(e => console.warn('[Digitale Académie] son indisponible :', e));
 const motionBtn = R.querySelector('[data-da-action="motion"]');
 if (motionBtn) {
@@ -107,13 +108,15 @@ async function start() {
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .5, .5, .9); composer.addPass(bloom);
   const fx = new ShaderPass({
-    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uFade: { value: 1 }, uCA: { value: .0007 }, uDream: { value: .5 }, uWhite: { value: 0 }, uBlack: { value: 0 }, uWhiteC: { value: new THREE.Vector3(.9, .93, .97) } },
+    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uFade: { value: 1 }, uCA: { value: .0007 }, uDream: { value: .5 }, uWhite: { value: 0 }, uBlack: { value: 0 }, uRad: { value: 0 }, uWhiteC: { value: new THREE.Vector3(.9, .93, .97) } },
     vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     /* rendu de rêve : léger halo diffus, aberration sur les bords, vignette, grain fin */
-    fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uFade,uCA,uDream,uWhite,uBlack;uniform vec3 uWhiteC;varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uFade,uCA,uDream,uWhite,uBlack,uRad;uniform vec3 uWhiteC;varying vec2 vUv;
       float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
       void main(){vec2 d=vUv-.5;float r=dot(d,d);vec2 o=d*uCA*(1.+r*6.);
         vec3 c=vec3(texture2D(tDiffuse,vUv+o).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-o).b);
+        /* plongée : flou de vitesse radial, nul au centre (là où l'oiseau regarde), fort sur les bords */
+        if(uRad>.0005){vec3 acc=c;for(int i=1;i<7;i++){acc+=texture2D(tDiffuse,vUv-d*uRad*float(i)*(.4+r*4.)).rgb;}c=acc/7.;}
         vec3 soft=(texture2D(tDiffuse,vUv+vec2(.004,0.)).rgb+texture2D(tDiffuse,vUv-vec2(.004,0.)).rgb+texture2D(tDiffuse,vUv+vec2(0.,.005)).rgb+texture2D(tDiffuse,vUv-vec2(0.,.005)).rgb)*.25;
         c=mix(c,max(c,soft),uDream*.18);
         /* bourrasque de neige : l'image blanchit, avec un voile qui dérive */
@@ -409,7 +412,8 @@ async function start() {
   const probe = { n: 0, sum: 0, drops: 0 };
   const camPos = new THREE.Vector3(.6, 1.75, 34), look = new THREE.Vector3(1.4, 2.2, -2), tmpP = new THREE.Vector3(), tmpL = new THREE.Vector3();
   const prevCam = new THREE.Vector3(), tmpV = new THREE.Vector3(), tmpF = new THREE.Vector3(), tmpR = new THREE.Vector3();
-  let bank = 0, speed = 0, lastCut = '', lastHard = false;
+  let bank = 0, speed = 0, lastCut = '', lastHard = false, diveSaid = false, landSaid = false, flightSnd = { wind: -1, bright: 0, at: 0 };
+  wings.onBeat = k => { if (current === 'hero') cue('aile', k); };
   const BL = .18;   /* part de chaque chapitre consacrée au raccord de caméra avec le précédent */
   const DUSK = { hero: .45, lieu: .45, campus: .1, asc: .2, walk: .3, human: .4, terr: .65, finale: 1 };
   window.__v2 = { get state() { return { current, level, cam: camera.position.toArray().map(v => +v.toFixed(1)), p: Object.fromEntries(chapters.map(c => [c.id, +c.p.toFixed(3)])) }; } };
@@ -445,7 +449,7 @@ async function start() {
     sky.update(t, dusk);
     /* lumière réelle de la nuit d'hiver → aube */
     moon.intensity = lerp(.35, 1.5, dusk); hemi.intensity = lerp(.18, .7, dusk); scene.environmentIntensity = lerp(.14, .55, dusk);
-    fx.uniforms.uTime.value = t; fx.uniforms.uBlack.value = 0; bloom.threshold = .9; bloom.strength = .5;
+    fx.uniforms.uTime.value = t; fx.uniforms.uBlack.value = 0; fx.uniforms.uRad.value = 0; bloom.threshold = .9; bloom.strength = .5;
     pavilion.power(1); photoRooms.group.visible = false;
     fade = damp(fade, 0, 2.2, dt); fx.uniforms.uFade.value = fade;
 
@@ -483,6 +487,14 @@ async function start() {
       if (sky && ctx.flight) ctx.flight.aerial(true, t, 1 - ss(.78, .93, sk));
       /* plongée dans la neige : la nuit se referme (bleu nuit, jamais de blanc), on ressort au ras de l'allée */
       if (center === 'hero') fx.uniforms.uBlack.value = sky ? ss(.66, .9, sk) : 1 - ss(0, .05, p);
+      /* son du vol : le vent monte avec la vitesse ; un souffle pour la plongée, des battements pour l'atterrissage */
+      if (center === 'hero') {
+        const wind = sky ? .5 + .5 * ss(.45, .9, sk) : .55 * (1 - ss(.45, .7, p)), bright = sky ? .25 + .75 * ss(.5, .92, sk) : .2 * (1 - ss(.3, .6, p));
+        if (Math.abs(wind - flightSnd.wind) > .03 || Math.abs(bright - flightSnd.bright) > .03 || now - flightSnd.at > 400) { flightSnd = { wind, bright, at: now }; R.dispatchEvent(new CustomEvent('da:flight', { detail: { wind, bright } })); }
+        if (sky && sk > .58 && !diveSaid) { diveSaid = true; cue('plongee'); } if (sky && sk < .4) diveSaid = false;
+        if (!sky && p > .4 && !landSaid) { landSaid = true; cue('atterrissage'); } if (sky || p < .3) landSaid = false;
+        fx.uniforms.uRad.value = sky ? .022 * ss(.5, .88, sk) : 0;
+      } else if (flightSnd.wind > 0) { flightSnd = { wind: 0, bright: 0, at: now }; R.dispatchEvent(new CustomEvent('da:flight', { detail: { wind: 0, bright: 0 } })); }
       wings.light(sky ? .12 : lerp(.14, .5, ss(.25, .55, p)));   /* lune, puis jour d'automne devant la porte */
       streaks.update(dt, center === 'hero' ? (sky ? .22 + .4 * ss(.5, .85, sk) : .5 * (1 - ss(0, .2, p))) : 0, center === 'hero' ? (sky ? 9 + 16 * ss(.5, .9, sk) : 8 * (1 - ss(0, .3, p)) + 2) : 0);
       real.update(camera.position);
@@ -592,6 +604,8 @@ async function start() {
       }
     }
     wings.update(t, dt, window.__wingState || wingState(center === 'hero' ? C.hero.p : 1));
+    /* le corps de l'oiseau porte l'œil : il monte à chaque abattée et roule un peu */
+    if (center === 'hero') { camera.position.y += wings.heave; camera.rotateZ(wings.sway); }
     composer.render(dt);
   }
   /* démarrage continu : shaders compilés et textures envoyées avant la première image visible ;
