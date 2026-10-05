@@ -17,7 +17,8 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install numpy pillow pyproj laspy[lazrs] scipy
-      - run: python digitale-academie/build/ign/probe.py
+      - run: |
+          if [ ! -f digitale-academie/build/ign/out/report.json ]; then python digitale-academie/build/ign/probe.py; fi
       - run: |
           if [ -f digitale-academie/build/ign/build.py ]; then python digitale-academie/build/ign/build.py; fi
       - name: Repousser les résultats
