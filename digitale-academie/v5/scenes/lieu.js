@@ -181,7 +181,7 @@ export async function create(ctx, el) {
         const li = facts[act], box = li.parentElement.getBoundingClientRect(), cv = ctx.renderer.domElement.getBoundingClientRect();
         capV.copy(TXT).y -= act === 0 ? (ctx.mobile ? .42 : .78) : (ctx.mobile ? .6 : 1.0); capV.project(ctx.camera);
         const x = cv.left + (capV.x * .5 + .5) * cv.width, y = cv.top + (.5 - capV.y * .5) * cv.height;
-        li.style.left = (x - box.left - li.offsetWidth / 2).toFixed(1) + 'px';
+        li.style.left = (x - box.left).toFixed(1) + 'px';   /* centré par translate:-50% (CSS) */
         li.style.bottom = 'auto'; li.style.top = (y - box.top).toFixed(1) + 'px';
       }
       if (spaces) spaces.style.opacity = eOut(ss(.9, .98, p));
