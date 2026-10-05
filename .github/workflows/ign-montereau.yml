@@ -21,7 +21,8 @@ jobs:
       - run: |
           if [ ! -f digitale-academie/build/ign/out/report.json ]; then python digitale-academie/build/ign/probe.py; fi
       - run: |
-          if [ -f digitale-academie/build/ign/build.py ]; then python digitale-academie/build/ign/build.py; fi
+          if [ ! -f digitale-academie/v5/assets/ign/zones.json ]; then python digitale-academie/build/ign/build.py; fi
+      - run: python digitale-academie/build/ign/lieux.py
       - name: Repousser les résultats
         run: |
           git config user.name "ign-data-bot"; git config user.email "ign-data-bot@users.noreply.github.com"
