@@ -591,7 +591,8 @@ async function start() {
     const cur = SC[center], c = C[center];
     const tgt = cur.cam(c.p, mouse, t);
     /* le final ne se raccorde pas en vol : on y arrive à travers la lumière du faisceau (voile doré) */
-    if (ci > 0 && c.p < BL && center !== 'finale') {
+    /* un monde « coupé » (tgt.hard : la vraie ville du survol, les vraies salles) ne se rejoint jamais en vol : coupe franche */
+    if (ci > 0 && c.p < BL && center !== 'finale' && !tgt.hard) {
       const prev = SC[chapters[ci - 1].id].cam(1, mouse, t), b = eIO(c.p / BL);
       const dd = prev.pos.distanceTo(tgt.pos);
       /* arc de vol seulement pour les grands déplacements (jamais à travers un plafond) */
