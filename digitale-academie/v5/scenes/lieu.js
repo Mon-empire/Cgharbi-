@@ -100,7 +100,7 @@ export async function create(ctx, el) {
         vA=max(smoothstep(0.,.05,uIn-aS*.55),uPre*(.45+.25*sin(uTime*2.+aS*70.)))*(1.-uOut)*mix(.85+.15*sin(uTime*3.+aS*80.),1.,e);}`,
     fragmentShader: `varying vec3 vC;varying float vA;void main(){vec2 c=gl_PointCoord-.5;float r=length(c);if(r>.5)discard;gl_FragColor=vec4(vC*(1.-smoothstep(0.,.5,r))*vA,1.);}`
   }));
-  pts.frustumCulled = false; pts.visible = false; ctx.scene.add(pts);
+  pts.frustumCulled = false; pts.visible = false; pts.renderOrder = 10; ctx.scene.add(pts);
 
   /* ---------- deux lucioles : les coachs (couleurs des lucioles du chapitre « Les veilleurs ») ---------- */
   const luc = ['#FFD600', '#00BBDB'].map((c, k) => {
@@ -110,7 +110,7 @@ export async function create(ctx, el) {
     for (let i = 0; i < TR; i++) { const a = (1 - i / TR) ** 1.6 * 3; tc.set([col.r * a, col.g * a, col.b * a], i * 3); }
     const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.BufferAttribute(tp, 3)); tg.setAttribute('color', new THREE.BufferAttribute(tc, 3));
     const trail = new THREE.Line(tg, new THREE.LineBasicMaterial({ vertexColors: true, toneMapped: false, transparent: true, blending: THREE.AdditiveBlending }));
-    trail.frustumCulled = false; orb.visible = trail.visible = false; ctx.scene.add(orb, trail);
+    trail.frustumCulled = false; orb.visible = trail.visible = false; orb.renderOrder = trail.renderOrder = 10; ctx.scene.add(orb, trail);
     return { orb, trail, tp, TR, k, start: V(k ? 4.4 : 3.6, .03, k ? -6.2 : -4.8), init: false };
   });
   const HOVER = V(5.2, 1.55, -5.4);
@@ -132,6 +132,12 @@ export async function create(ctx, el) {
       const power = on > 0 ? flicker(on) : .03 + .12 * (1 - dark);
       if (isCurrent) { pavilion.power(power); lit = power; }
       if (on > 0 && !neonSaid && isCurrent) { neonSaid = true; ctx.cue('neon'); } if (on === 0) neonSaid = false;
+      /* l'accueil, en photographie : la porte passée, la lumière dorée de l'entrée ; les néons s'allument à la fin */
+      if (isCurrent && ctx.backdrop) ctx.backdrop.show({
+        a: 'accueil', fade: ss(.02, .11, p), zoom: 1.02 + .12 * ss(.08, 1, p),
+        pan: [m.sx * .008, -.05 * ss(.5, .6, p) * (1 - ss(.7, .8, p)) + m.sy * .005],
+        light: on > 0 ? .5 + .5 * flicker(on) : .5 - .12 * dark, warm: .5, expo: 1
+      });
 
       U.uPre.value = 1 - ss(.08, .3, p); U.uTime.value = t; U.uIn.value = ss(.06, .4, p); U.uFloor.value = ss(.46, .64, p); U.uOut.value = ss(.9, 1, p);
       pts.visible = isCurrent && p < .999;

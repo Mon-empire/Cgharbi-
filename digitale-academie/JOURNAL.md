@@ -3,6 +3,19 @@
 > **5 octobre 2026 — retour à la v14 à la demande de la Ville.** La v15 (« photographie et lumière dans le noir ») a été
 > refusée ; elle reste dans l'historique git (commit 1527f31) mais n'est plus en ligne. Code remis tel quel, sans retouche.
 
+## Version 14.6 (5 octobre 2026) : les intérieurs en photographie
+Plus aucune pièce du pavillon modélisée à l'image (`world/backdrop.js` : photo plein cadre attachée à l'œil, travelling
+avant lent, fondu enchaîné, néons, dissolution ; la nuée, les lucioles et les livres restent au-dessus).
+- **II · Le lieu** : l'accueil en photographie, « 3 000+ », la fibre et les deux lucioles par-dessus.
+- **III · La visite** : accueil → salle informatique (vraie photo de la Ville, `etudiants-1.jpg`) → les trois vraies
+  salles en volume (inchangées) → la vraie salle d'étude, dont le papier peint de bibliothèque se consume vers la bibliothèque.
+- **Accueil = image générée** (Gemini 3 Pro Image via ElevenLabs, d'après les photos des vraies salles : même sol rouge,
+  mêmes cloisons, même plafond ; `assets/img/accueil-genere.jpg`), à la demande du commanditaire faute de photo de
+  l'accueil. Badge « image générée · à valider » affiché aux chapitres II et III. **À remplacer par une vraie photo.**
+- Salle informatique : la photo montre des étudiants reconnaissables → badge « droit à l'image à valider » étendu.
+- Une salle informatique générée était prévue : quota d'images ElevenLabs épuisé (plan gratuit), Canva ne livre que des
+  vignettes signées, Weave (Figma) non relié ; la vraie photo la remplace, ce qui est plus juste.
+
 ## Version 14.5 (5 octobre 2026) : plus de 3D sur le bâtiment à l'ouverture
 - Vol : les volumes OSM ne sont plus affichés (ils ne servent qu'à projeter leurs vraies ombres sur la photo IGN) ;
   la fin du vol reste au-dessus du pavillon (105 m), regard plongeant sur la photo IGN à 0,32 m/pixel, puis le piqué.

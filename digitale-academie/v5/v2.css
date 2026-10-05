@@ -142,7 +142,7 @@
 #da-experience.is-live .v2-work ul{flex-direction:column;align-items:flex-end;gap:2px}
 #da-experience.is-live .v2-work li{box-shadow:none;padding:4px 0;color:var(--mute);transition:color .4s,font-size .4s}
 #da-experience.is-live .v2-work li.is-on{color:var(--ink);font-size:clamp(22px,2.2vw,36px);font-weight:600}
-#da-experience.is-live .v2-human .v2-credit,#da-experience.is-live .v2-campus .v2-credit{right:var(--gut);top:clamp(70px,12vh,130px);margin:0}
+#da-experience.is-live .v2-human .v2-credit,#da-experience.is-live .v2-campus .v2-credit,#da-experience.is-live .v2-lieu .v2-credit{right:var(--gut);top:clamp(70px,12vh,130px);margin:0}
 
 #da-experience.is-live .v2-lieu__spaces{left:var(--gut);bottom:clamp(40px,7vh,80px);margin:0}
 #da-experience.is-live .v2-lieu .v2-facts{bottom:clamp(110px,18vh,190px)}

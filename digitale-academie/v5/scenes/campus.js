@@ -59,6 +59,11 @@ export async function create(ctx, el) {
       });
       if (!seg && p < .3) lastNeon = '';
       if (photoRooms) photoRooms.group.visible = isCurrent && !!seg;
+      /* accueil puis salle informatique, en photographie ; à la fin, la vraie salle d'étude et son papier peint qui se consume */
+      if (isCurrent && ctx.backdrop && !seg) {
+        if (p < .32) ctx.backdrop.show({ a: 'accueil', b: 'info', mix: ss(.12, .18, p), zoom: p < .15 ? 1.14 + .05 * p / .15 : 1.02 + .1 * (p - .15) / .17, pan: [m.sx * .008, m.sy * .005], light: 1 - ss(.27, .31, p), warm: .4 });
+        else if (p >= .79) ctx.backdrop.show({ a: 'salle', zoom: 1.02 + .16 * ss(.79, 1, p), pan: [m.sx * .008, m.sy * .005], light: .62, warm: .7, expo: 1.05, burn: ss(.86, .99, p) });
+      }
 
       if (isCurrent) {
         /* le noir entre les mondes : les néons du pavillon s'éteignent avant la première vraie salle, puis avant l'étude */

@@ -246,6 +246,9 @@ async function start() {
   const { createPhotoRooms } = await import('./world/photorooms.js');
   const photoRooms = await createPhotoRooms(ctx);
   ctx.photoRooms = photoRooms;
+  /* les intérieurs en photographie : plus aucune pièce du pavillon modélisée à l'image */
+  const { createBackdrop } = await import('./world/backdrop.js');
+  const backdrop = await createBackdrop(ctx); ctx.backdrop = backdrop;
   /* on est l'oiseau : ses ailes et son dos, attachés à la caméra */
   /* le vrai Montereau vu du ciel (orthophotos IGN, relief réel, bâtiments OSM) */
   const { createAerial } = await import('./world/aerial.js');
@@ -473,7 +476,7 @@ async function start() {
       /* réel / intérieur : la photo dehors, le modèle dedans */
       const inside = (center === 'lieu' && pastDoor) || ['campus', 'asc', 'walk', 'human'].includes(center);
       /* chaque monde n'existe que là où on le voit : la façade réelle dehors, le pavillon modélisé dans la visite, la maquette au territoire */
-      const inPav = center === 'lieu' || center === 'campus' || (center === 'asc' && pc < BL);
+      const inPav = center === 'lieu' || center === 'campus';
       real.group.visible = !inside && center !== 'terr' && !sky;
       pavilion.exterior.visible = inPav; pavilion.interior.visible = inPav;
       if (SC.terr) SC.terr.group.visible = C.terr.vis || (center === 'finale' && pc < BL);
@@ -551,7 +554,9 @@ async function start() {
     }
 
     /* ----- chapitres ----- */
+    backdrop.reset(); backdrop.fit();
     for (const id in SC) { const c = C[id]; if (id !== 'hero' && c && (c.vis || id === center)) SC[id].update(c.p, t, dt, mouse, id === center); else if (SC[id].rest) SC[id].rest(); }
+    if (backdrop.on) { pavilion.exterior.visible = false; pavilion.interior.visible = false; }
     if (SC.finale) SC.finale.group.visible = C.finale.vis || center === 'finale';
     /* livres : arrachés du mur à la fin de la visite, en vol dans l'atrium, calmes près des lanternes, puis aspirés par la verrière */
     flock.update(t, center === 'campus' ? { on: pc > .87, burst: ss(.89, .995, pc) }
